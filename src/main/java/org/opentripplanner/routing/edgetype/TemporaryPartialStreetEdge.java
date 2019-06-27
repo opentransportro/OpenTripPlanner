@@ -161,11 +161,21 @@ final public class TemporaryPartialStreetEdge extends StreetWithElevationEdge im
     }
 
     private void setElevationProfileUsingParents() {
-        setElevationProfile(
-                ElevationUtils.getPartialElevationProfile(
-                        getParentEdge().getElevationProfile(), 0, getDistance()
-                ),
-                false
-        );
+        if (getParentEdge().getFromVertex().equals(this.getFromVertex())) {
+            setElevationProfile(
+                    ElevationUtils.getPartialElevationProfile(
+                            getParentEdge().getElevationProfile(), 0, getDistance()
+                    ),
+                    false
+            );
+        } else {
+            setElevationProfile(
+                    ElevationUtils.getPartialElevationProfile(
+                            getParentEdge().getElevationProfile(), getParentEdge().getDistance() -
+                            getDistance(), getParentEdge().getDistance()
+                    ),
+                    false
+            );
+        }
     }
 }

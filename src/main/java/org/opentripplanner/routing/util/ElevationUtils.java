@@ -282,7 +282,6 @@ public class ElevationUtils {
             end = length;
 
         boolean started = false;
-        boolean finished = false;
         Coordinate lastCoord = null;
         for (Coordinate coord : coordinateArray) {
             if (coord.x >= start && coord.x <= end) {
@@ -304,20 +303,20 @@ public class ElevationUtils {
                     Coordinate interpolatedStartCoordinate = new Coordinate(0, lastCoord.y + p * rise);
                     coordList.add(0, interpolatedStartCoordinate);
                 }
-            } else if (coord.x > end && !finished && started && lastCoord != null) {
-                finished = true;
+                lastCoord = coord;
+            } else if (coord.x > end && started && lastCoord != null) {
                 // interpolate end coordinate
                 double run = coord.x - lastCoord.x;
                 if (run < 1) {
                     //tiny runs are likely to lead to errors, so we'll skip them
-                    continue;
+                    break;
                 }
                 double p = (end - lastCoord.x) / run;
                 double rise = coord.y - lastCoord.y;
                 Coordinate interpolatedEndCoordinate = new Coordinate(end, lastCoord.y + p * rise);
                 coordList.add(interpolatedEndCoordinate);
+                break;
             }
-            lastCoord = coord;
         }
 
         Coordinate coordArr[] = new Coordinate[coordList.size()];
