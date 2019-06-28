@@ -281,41 +281,42 @@ public class ElevationUtils {
         if (end > length)
             end = length;
 
-        boolean started = false;
         Coordinate lastCoord = null;
         for (Coordinate coord : coordinateArray) {
             if (coord.x >= start && coord.x <= end) {
-                coordList.add(new Coordinate(coord.x - start, coord.y));
-                if (!started) {
-                    started = true;
-                    if (lastCoord == null) {
-                       //no need to interpolate as this is the first coordinate
-                        continue;
-                    }
-                    // interpolate start coordinate 
-                    double run = coord.x - lastCoord.x;
-                    if (run < 1) {
-                        //tiny runs are likely to lead to errors, so we'll skip them
-                        continue;
-                    }
+                // No point to try to interpolate the start coordinate when the current coord is
+                // the first coordinate or the current coordinate is close to the last coordinate
+                if (coordList.size() == 0 && lastCoord != null &&
+                        coord.x - start - lastCoord.x >= 1) {
+                    double run = coord.x - start - lastCoord.x;
                     double p = (coord.x - start) / run;
                     double rise = coord.y - lastCoord.y;
-                    Coordinate interpolatedStartCoordinate = new Coordinate(0, lastCoord.y + p * rise);
-                    coordList.add(0, interpolatedStartCoordinate);
+                    Coordinate interpolatedStartCoordinate =
+                            new Coordinate(0, lastCoord.y + p * rise);
+                    coordList.add(interpolatedStartCoordinate);
+                    lastCoord = interpolatedStartCoordinate;
                 }
-                lastCoord = coord;
-            } else if (coord.x > end && started && lastCoord != null) {
-                // interpolate end coordinate
-                double run = coord.x - lastCoord.x;
-                if (run < 1) {
-                    //tiny runs are likely to lead to errors, so we'll skip them
+                Coordinate fixedCoord = new Coordinate(coord.x - start, coord.y);
+                coordList.add(fixedCoord);
+                lastCoord = fixedCoord;
+            } else if (coord.x > end) {
+                if (lastCoord != null && coord.x - start - lastCoord.x >= 1) {
+                    // interpolate end coordinate
+                    double run = coord.x - start - lastCoord.x;
+                    double p = (end - start - lastCoord.x) / run;
+                    double rise = coord.y - lastCoord.y;
+                    Coordinate interpolatedEndCoordinate =
+                            new Coordinate(end - start, lastCoord.y + p * rise);
+                    coordList.add(interpolatedEndCoordinate);
+                    break;
+                } else if (lastCoord == null) {
+                    // no last coordinate to interpolate from
+                    // so just use the elevation from the current coordinate
+                    coordList.add(new Coordinate(end - start, coord.y));
                     break;
                 }
-                double p = (end - lastCoord.x) / run;
-                double rise = coord.y - lastCoord.y;
-                Coordinate interpolatedEndCoordinate = new Coordinate(end, lastCoord.y + p * rise);
-                coordList.add(interpolatedEndCoordinate);
-                break;
+            } else {
+                lastCoord = new Coordinate(coord.x - start, coord.y);
             }
         }
 
