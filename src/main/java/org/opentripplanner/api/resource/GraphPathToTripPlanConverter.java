@@ -1007,7 +1007,6 @@ public abstract class GraphPathToTripPlanConverter {
                             // succession; this is probably a U-turn.
                             
                             steps.remove(last - 1);
-                            
                             lastStep.distance += twoBack.distance;
                             
                             // A U-turn to the left, typical in the US. 
@@ -1053,9 +1052,8 @@ public abstract class GraphPathToTripPlanConverter {
                     } else {
                         step.elevation = s;
                     }
+                    distance += edge.getDistance();
                 }
-                distance += edge.getDistance();
-
             }
 
             // increment the total length for this step
