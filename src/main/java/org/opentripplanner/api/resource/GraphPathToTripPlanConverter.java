@@ -164,7 +164,7 @@ public abstract class GraphPathToTripPlanConverter {
 
         calculateTimes(itinerary, states);
 
-        calculateElevations(itinerary, edges);
+        calculateElevations(itinerary);
 
         itinerary.walkDistance = lastState.getWalkDistance();
 
@@ -512,27 +512,32 @@ public abstract class GraphPathToTripPlanConverter {
     /**
      * Calculate the elevationGained and elevationLost fields of an {@link Itinerary}.
      *
-     * @param itinerary The itinerary to calculate the elevation changes for
-     * @param edges The edges that go with the itinerary
+     * @param itinerary The itinerary to calculate the elevation changes for and from
      */
-    private static void calculateElevations(Itinerary itinerary, Edge[] edges) {
-        for (Edge edge : edges) {
-            if (!(edge instanceof StreetEdge)) continue;
-
-            StreetEdge edgeWithElevation = (StreetEdge) edge;
-            PackedCoordinateSequence coordinates = edgeWithElevation.getElevationProfile();
-
-            if (coordinates == null) continue;
-            // TODO Check the test below, AFAIU current elevation profile has 3 dimensions.
-            if (coordinates.getDimension() != 2) continue;
-
-            for (int i = 0; i < coordinates.size() - 1; i++) {
-                double change = coordinates.getOrdinate(i + 1, 1) - coordinates.getOrdinate(i, 1);
-
-                if (change > 0) {
-                    itinerary.elevationGained += change;
-                } else if (change < 0) {
-                    itinerary.elevationLost -= change;
+    private static void calculateElevations(Itinerary itinerary) {
+        for (Leg leg : itinerary.legs) {
+            Double lastElevation = null;
+            for (WalkStep step : leg.walkSteps) {
+                List<P2<Double>> elevationValues = step.elevation;
+                // Calculate elevation change between steps
+                if (lastElevation != null && elevationValues.size() > 0) {
+                    double change = elevationValues.get(0).second - lastElevation;
+                    if (change > 0) {
+                        itinerary.elevationGained += change;
+                    } else if (change < 0) {
+                        itinerary.elevationLost -= change;
+                    }
+                    lastElevation = elevationValues.get(elevationValues.size() - 1).second;
+                }
+                // Calculate elevation changes between elevation values of a step
+                for (int i = 0; i < elevationValues.size() - 1; i++) {
+                    double change = elevationValues.get(i + 1).second -
+                            elevationValues.get(i).second;
+                    if (change > 0) {
+                        itinerary.elevationGained += change;
+                    } else if (change < 0) {
+                        itinerary.elevationLost -= change;
+                    }
                 }
             }
         }
