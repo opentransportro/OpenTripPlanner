@@ -902,28 +902,7 @@ public class GraphPathToTripPlanConverterTest {
         }
         compareStopIds(stopIds, type);
 
-        /*
-         * This four-dimensional array is indexed as follows:
-         *
-         * [X][ ][ ][ ] The leg number
-         * [ ][X][ ][ ] The walk step number
-         * [ ][ ][X][ ] 0 for the start of the walk step, 1 for the end
-         * [ ][ ][ ][X] 0 for the distance traveled, 1 for the actual elevation
-         *
-         * Although technically, this particular array is not jagged, some of its elements are null.
-         */
-        Double[][][][] elevations = new Double[9][2][2][2];
-        for (int i = 0; i < elevations.length; i++) {
-            for (int j = 0; j < elevations[i].length; j++) {
-                if (steps[i].length <= j) break;
-                for (int k = 0; k < elevations[i][j].length; k++) {
-                    if (steps[i][j].elevation.size() <= k) break;
-                    elevations[i][j][k][0] = steps[i][j].elevation.get(k).first;
-                    elevations[i][j][k][1] = steps[i][j].elevation.get(k).second;
-                }
-            }
-        }
-        compareElevations(elevations, type);
+        compareElevations(steps, type);
     }
 
     /** Compare all simple itinerary fields to their expected values. */
@@ -1895,7 +1874,36 @@ public class GraphPathToTripPlanConverterTest {
     }
 
     /** Compare the elevations to their expected values, step by step. */
-    private void compareElevations(Double[][][][] elevations, Type type) {
+    private void compareElevations(WalkStep[][] steps, Type type) {
+
+        /*
+         * This four-dimensional array is indexed as follows:
+         *
+         * [X][ ][ ][ ] The leg number
+         * [ ][X][ ][ ] The walk step number
+         * [ ][ ][X][ ] 0 for the start of the walk step, 1 for the end
+         * [ ][ ][ ][X] 0 for the distance traveled, 1 for the actual elevation
+         *
+         * Although technically, this particular array is not jagged, some of its elements are null.
+         */
+        Double[][][][] elevations = new Double[9][2][2][2];
+        for (int i = 0; i < elevations.length; i++) {
+            for (int j = 0; j < elevations[i].length; j++) {
+                if (steps[i].length <= j) break;
+                Double lastDistance = null;
+                for (int k = 0; k < elevations[i][j].length; k++) {
+                    if (steps[i][j].elevation.size() <= k) break;
+                    elevations[i][j][k][0] = steps[i][j].elevation.get(k).first;
+                    elevations[i][j][k][1] = steps[i][j].elevation.get(k).second;
+                    lastDistance = steps[i][j].elevation.get(k).second;
+                }
+                if (lastDistance != null) {
+                    // Test that the total distance of the step equals the last elevation distance
+                    assertEquals(steps[i][j].distance, lastDistance, 0.0);
+                }
+            }
+        }
+
         if (type == Type.FORWARD || type == Type.BACKWARD) {
             assertEquals(0.0, elevations[0][0][0][0], 0.0);
             assertEquals(0.0, elevations[0][0][0][1], 0.0);
