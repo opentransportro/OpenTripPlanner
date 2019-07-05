@@ -46,6 +46,7 @@ public abstract class GraphPathToTripPlanConverter {
     private static final double MAX_ZAG_DISTANCE = 30; // TODO add documentation, what is a "zag"?
     private static final double WALK_LEG_DISTANCE_EPSILON = 2.0;
     private static final double WALK_LEG_DURATION_EPSILON = 5e3;
+    private static final double MIN_ELEVATION_DISTANCE_DIFFERENCE = 5.0;
 
     /**
      * Generates a TripPlan from a set of paths
@@ -1037,12 +1038,10 @@ public abstract class GraphPathToTripPlanConverter {
                             step.distance += twoBack.distance;
                             distance += step.distance;
                             if (twoBack.elevation != null) {
-                                if (step.elevation == null) {
+                                if (step.elevation == null || step.elevation.size() == 0) {
                                     step.elevation = twoBack.elevation;
                                 } else {
-                                    for (P2<Double> d : twoBack.elevation) {
-                                        step.elevation.add(new P2<Double>(d.first + step.distance, d.second));
-                                    }
+                                    step.elevation = appendElevationProfile(step.elevation, twoBack.elevation, step.distance);
                                 }
                             }
                         }
@@ -1050,12 +1049,12 @@ public abstract class GraphPathToTripPlanConverter {
                 }
             } else {
                 if (!createdNewStep && step.elevation != null) {
-                    List<P2<Double>> s = encodeElevationProfile(edge, distance,
+                    List<P2<Double>> elevationValues = encodeElevationProfile(edge, distance,
                             backState.getOptions().geoidElevation ? -graph.ellipsoidToGeoidDifference : 0);
                     if (step.elevation != null && step.elevation.size() > 0) {
-                        step.elevation.addAll(s);
+                        step.elevation = appendElevationProfile(step.elevation, elevationValues, 0);
                     } else {
-                        step.elevation = s;
+                        step.elevation = elevationValues;
                     }
                     distance += edge.getDistance();
                 }
@@ -1116,6 +1115,21 @@ public abstract class GraphPathToTripPlanConverter {
         return step;
     }
 
+    private static List<P2<Double>> appendElevationProfile(List<P2<Double>> profile, List<P2<Double>> profileToAdd, double distanceOffset) {
+        if (profileToAdd.size() > 0) {
+            Double lastElevationDistance = profile.get(profile.size() - 1).first;
+            Double firstElevationDistance = profileToAdd.get(0).first + distanceOffset;
+            if (firstElevationDistance - lastElevationDistance > MIN_ELEVATION_DISTANCE_DIFFERENCE) {
+                profile.add(new P2<Double>(firstElevationDistance, profileToAdd.get(0).second));
+            }
+            for (int j = 1; j < profileToAdd.size(); j++) {
+                P2<Double> elevationPair = profileToAdd.get(j);
+                profile.add(new P2<Double>(elevationPair.first + distanceOffset, elevationPair.second));
+            }
+        }
+        return profile;
+    }
+
     private static List<P2<Double>> encodeElevationProfile(Edge edge, double distanceOffset, double heightOffset) {
         if (!(edge instanceof StreetEdge)) {
             return new ArrayList<P2<Double>>();
@@ -1126,8 +1140,14 @@ public abstract class GraphPathToTripPlanConverter {
         }
         ArrayList<P2<Double>> out = new ArrayList<P2<Double>>();
         Coordinate[] coordArr = elevEdge.getElevationProfile().toCoordinateArray();
+        Double lastDistance = null;
         for (int i = 0; i < coordArr.length; i++) {
-            out.add(new P2<Double>(coordArr[i].x + distanceOffset, coordArr[i].y + heightOffset));
+            if (lastDistance == null || coordArr[i].x - lastDistance >
+                    MIN_ELEVATION_DISTANCE_DIFFERENCE) {
+                out.add(new P2<Double>(coordArr[i].x + distanceOffset,
+                        coordArr[i].y + heightOffset));
+                lastDistance = coordArr[i].x;
+            }
         }
         return out;
     }
