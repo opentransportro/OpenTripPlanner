@@ -96,12 +96,12 @@ public class LinkingTest {
         StreetWithElevationEdge s0 = new StreetWithElevationEdge(v0, v1, geom, "test", dist, StreetTraversalPermission.ALL, false);
 
         int x_length = 10;
-		Coordinate[] c = new Coordinate[6];
-		// [(0, 10), (2, 8), (4, 6), (6, 4), (8, 2), (10, 0)]
-		for (int i = 0; i <= x_length; i += 2) {
-			c[i / 2] = new Coordinate(i, x_length - i);
-		}
-		PackedCoordinateSequence elevationProfile = new PackedCoordinateSequence.Double(c, 2);
+        Coordinate[] c = new Coordinate[6];
+        // [(0, 10), (2, 8), (4, 6), (6, 4), (8, 2), (10, 0)]
+        for (int i = 0; i <= x_length; i += 2) {
+            c[i / 2] = new Coordinate(i, x_length - i);
+        }
+        PackedCoordinateSequence elevationProfile = new PackedCoordinateSequence.Double(c, 2);
         s0.setElevationProfile(elevationProfile, false);
 
         SplitterVertex sv0 = new SplitterVertex(null, "split", x + 0.000025, y + 0.000025, s0);
