@@ -809,6 +809,13 @@ public class StreetEdge extends Edge implements Cloneable {
         length_mm = (int) (accumulatedMeters * 1000);
     }
 
+    /** Create new StreetEdge */
+    protected StreetEdge createEdge(StreetVertex fromVertex, StreetVertex toVertex,
+            LineString geometry, I18NString name, double length, StreetTraversalPermission permission,
+            boolean back) {
+        return new StreetEdge(fromVertex, toVertex, geometry, name, length, permission, back);
+    }
+
     /** Split this street edge and return the resulting street edges */
     public P2<StreetEdge> split(SplitterVertex v, boolean destructive) {
         P2<LineString> geoms = GeometryUtils.splitGeometryAtPoint(getGeometry(), v.getCoordinate());
@@ -817,8 +824,8 @@ public class StreetEdge extends Edge implements Cloneable {
         StreetEdge e2 = null;
 
         if (destructive) {
-            e1 = new StreetEdge((StreetVertex) fromv, v, geoms.first, name, 0, permission, this.isBack());
-            e2 = new StreetEdge(v, (StreetVertex) tov, geoms.second, name, 0, permission, this.isBack());
+            e1 = createEdge((StreetVertex) fromv, (StreetVertex) v, geoms.first, name, 0f, permission, this.isBack());
+            e2 = createEdge((StreetVertex) v, (StreetVertex) tov, geoms.second, name, 0f, permission, this.isBack());
 
             // copy the wayId to the split edges, so we can trace them back to their parent if need be
             e1.wayId = this.wayId;
