@@ -279,6 +279,60 @@ public class GraphIndex {
         }
     }
 
+    public synchronized void reindexPatternsAndTrips() {
+        long start = System.nanoTime();
+
+        Map<String, TripPattern> patternForId = Maps.newHashMap();
+        Multimap<String, TripPattern> patternsForFeedId = ArrayListMultimap.create();
+        Multimap<Route, TripPattern> patternsForRoute = ArrayListMultimap.create();
+        Map<Trip, TripPattern> patternForTrip = Maps.newHashMap();
+        Map<FeedScopedId, Trip> tripForId = Maps.newHashMap();
+        Map<FeedScopedId, Route> routeForId = Maps.newHashMap();
+
+        Collection<Edge> edges = graph.getEdges();
+        for (Edge edge : edges) {
+            if (edge instanceof TablePatternEdge) {
+                TablePatternEdge patternEdge = (TablePatternEdge) edge;
+                TripPattern pattern = patternEdge.getPattern();
+                patternForId.put(pattern.code, pattern);
+            }
+        }
+
+        for (TripPattern pattern : patternForId.values()) {
+            patternsForFeedId.put(pattern.getFeedId(), pattern);
+            patternsForRoute.put(pattern.route, pattern);
+
+            for (Trip trip : pattern.getTrips()) {
+                patternForTrip.put(trip, pattern);
+                tripForId.put(trip.getId(), trip);
+            }
+        }
+        for (Route route : patternsForRoute.asMap().keySet()) {
+            routeForId.put(route.getId(), route);
+        }
+
+        patternForId.forEach(this.patternForId::put);
+        patternsForFeedId.forEach((feedId, pattern) -> this.patternsForFeedId.replaceValues(feedId, this.patternsForFeedId.get(feedId).stream().map(original -> {
+            if (Objects.equals(original.code, pattern.code)) {
+                return pattern;
+            } else {
+                return original;
+            }
+        }).collect(Collectors.toList())));
+        patternsForRoute.forEach((route, pattern) -> this.patternsForRoute.replaceValues(route, this.patternsForRoute.get(route).stream().map(original -> {
+            if (Objects.equals(original.code, pattern.code)) {
+                return pattern;
+            } else {
+                return original;
+            }
+        }).collect(Collectors.toList())));
+        patternForTrip.forEach(this.patternForTrip::put);
+        tripForId.forEach(this.tripForId::put);
+        routeForId.forEach(this.routeForId::put);
+
+        LOG.debug("Graph reindexed in {}ms", ((System.nanoTime() - start) * Math.pow(10, -6)));
+    }
+
     /**
      * Stop clustering is slow to perform and only used in profile routing for the moment.
      * Therefore it is not done automatically, and any method requiring stop clusters should call this method
