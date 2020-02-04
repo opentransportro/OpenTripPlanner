@@ -400,6 +400,9 @@ public class TimetableSnapshotSource {
         //
 
         final boolean success = handleAddedTrip(graph, tripUpdate, stops, feedId, serviceDate);
+        if (success) {
+            graphIndex.reindexPatternsAndTrips();
+        }
         return success;
     }
 
