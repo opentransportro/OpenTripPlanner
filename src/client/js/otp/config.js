@@ -24,8 +24,8 @@ otp.config = {
         'fr': otp.locale.French,
         'it': otp.locale.Italian,
         'ca_ES': otp.locale.Catalan,
-	'es': otp.locale.Spanish,
-	'pt': otp.locale.Portuguese
+        'es': otp.locale.Spanish,
+        'pt': otp.locale.Portuguese
     },
 
     languageChooser : function() {
@@ -71,6 +71,11 @@ otp.config = {
 
     baseLayers: [
         {
+            name: 'OSM Standard Tiles',
+            tileUrl: 'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            attribution : 'Map data and tiles © OpenStreetMap contributors'
+        },
+        {
             name: 'Stamen Terrain',
             tileUrl: 'http://tile.stamen.com/terrain/{z}/{x}/{y}.png',
             attribution : 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
@@ -96,11 +101,6 @@ otp.config = {
             tileUrl: 'http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
             attribution : 'Map tiles by Carto/MapZen. Map data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
         },
-        {
-            name: 'OSM Standard Tiles',
-            tileUrl: 'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            attribution : 'Map data and tiles © OpenStreetMap contributors'
-        }
     ],
     
 
@@ -110,29 +110,29 @@ otp.config = {
      * properties, when set, override that behavioir.
      */
      
-    // initLatLng : new L.LatLng(<lat>, <lng>),
-    // initZoom : 14,
-    // minZoom : 10,
-    // maxZoom : 20,
+     initLatLng : new L.LatLng(45.756184, 21.229241),
+     initZoom : 8,
+     minZoom : 6,
+     maxZoom : 20,
     
     /* Whether the map should be moved to contain the full itinerary when a result is received. */
-    zoomToFitResults    : false,
+    zoomToFitResults    : true,
 
     /**
      * Site name / description / branding display options
      */
 
-    siteName            : "My OTP Instance",
-    siteDescription     : "An OpenTripPlanner deployment.",
+    siteName            : "Open Transport",
+    siteDescription     : "Open Transport - Intelligent Routing Solutions.",
     logoGraphic         : 'images/otp_logo_darkbg_40px.png',
-    // bikeshareName    : "",
+    bikeshareName       : "VeloTM",
     //Enable this if you want to show frontend language chooser
     showLanguageChooser : true,
 
-    showLogo            : true,
+    showLogo            : false,
     showTitle           : true,
     showModuleSelector  : true,
-    metric              : false,
+    metric              : true,
 
 
     /**
@@ -151,12 +151,16 @@ otp.config = {
         {
             id : 'planner',
             className : 'otp.modules.multimodal.MultimodalPlannerModule',
-            defaultBaseLayer : 'Stamen Terrain',
+            defaultBaseLayer : 'OSM Standard Tiles',
             isDefault: true
         },
         {
             id : 'analyst',
             className : 'otp.modules.analyst.AnalystModule'
+        },
+        {
+            id : 'bikeshare',
+            className : 'otp.modules.bikeshare.BikeShareModule'
         }
     ],
     
@@ -193,7 +197,7 @@ otp.config = {
      * Support for the "AddThis" display for sharing to social media sites, etc.
      */
      
-    showAddThis     : false,
+    showAddThis     : true,
     //addThisPubId    : 'your-addthis-id',
     //addThisTitle    : 'Your title for AddThis sharing messages',
 

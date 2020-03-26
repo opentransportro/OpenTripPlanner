@@ -12,6 +12,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 
@@ -22,6 +23,23 @@ public class HttpUtils {
 
     public static InputStream getData(String url) throws IOException {
         return getData(url, null, null);
+    }
+
+    public static InputStream getDataWithPost(String url, String requestHeaderName, String requestHeaderValue) throws ClientProtocolException, IOException {
+        HttpPost httpPost = new HttpPost(url);
+        if (requestHeaderValue != null) {
+            httpPost.addHeader(requestHeaderName, requestHeaderValue);
+        }
+        HttpClient httpclient = getClient();
+        HttpResponse response = httpclient.execute(httpPost);
+        if(response.getStatusLine().getStatusCode() != 200)
+            return null;
+
+        HttpEntity entity = response.getEntity();
+        if (entity == null) {
+            return null;
+        }
+        return entity.getContent();
     }
 
     public static InputStream getData(String url, String requestHeaderName, String requestHeaderValue) throws ClientProtocolException, IOException {

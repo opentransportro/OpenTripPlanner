@@ -1,19 +1,15 @@
 package org.opentripplanner.api.resource;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import org.locationtech.jts.geom.Envelope;
 import org.opentripplanner.api.parameter.BoundingBox;
 import org.opentripplanner.geocoder.Geocoder;
 import org.opentripplanner.geocoder.GeocoderResults;
+import org.opentripplanner.geocoder.nominatim.NominatimGeocoder;
 
-import org.locationtech.jts.geom.Envelope;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Maybe the internal geocoder resource should just chain to defined external geocoders?
@@ -22,8 +18,8 @@ import org.locationtech.jts.geom.Envelope;
 public class ExternalGeocoderResource {
   
 // uncommenting injectparam will require a specific Geocoder to be instantiated
-//    @InjectParam 
-    public Geocoder geocoder;
+//    @InjectParam
+    public Geocoder geocoder = new NominatimGeocoder();
     
     @GET
     @Produces({MediaType.APPLICATION_JSON + "; charset=UTF-8"})

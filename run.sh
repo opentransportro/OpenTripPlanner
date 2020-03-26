@@ -35,7 +35,7 @@ function download_graph {
   NAME=$1
   VERSION=$2
   GRAPH_FILE=graph-$NAME.zip
-  URL=$(url $3 "graph-$NAME-$VERSION.zip")
+  URL=$(url $3 "$NAME/graph-$NAME.zip")
   echo "Downloading graph from $URL"
   for i in {1..6}; do
     HTTP_STATUS=$(curl --write-out %{http_code} --silent --output $GRAPH_FILE $URL)
@@ -104,4 +104,4 @@ do
   j=$[$j+1]
 done
 
-java -Dsentry.release=$VERSION $JAVA_OPTS -Duser.timezone=Europe/Helsinki -jar $JAR --server --port $PORT --securePort $SECURE_PORT --basePath ./ --graphs ./graphs $ROUTERS
+java -Dsentry.release=$VERSION $JAVA_OPTS -Duser.timezone=Europe/Bucharest -jar $JAR --server --port $PORT --securePort $SECURE_PORT --basePath ./ --graphs ./graphs $ROUTERS

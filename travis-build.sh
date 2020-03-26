@@ -8,7 +8,7 @@ set -e
 #DOCKER_USER // dockerhub credentials
 #DOCKER_AUTH
 
-ORG=${ORG:-hsldevcom}
+ORG=${ORG:-opentransport}
 DOCKER_TAG=${TRAVIS_COMMIT:-latest}
 DOCKER_IMAGE=$ORG/opentripplanner
 DOCKER_IMAGE_COMMIT=$DOCKER_IMAGE:$DOCKER_TAG

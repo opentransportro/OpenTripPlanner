@@ -14,13 +14,14 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 public class NominatimGeocoder implements Geocoder {
     private static final Logger LOG = LoggerFactory.getLogger(NominatimGeocoder.class);
 
-    private String nominatimUrl;
+    private String nominatimUrl = "https://nominatim.openstreetmap.org/";
     private Integer resultLimit;
     private String viewBox;
     private String emailAddress;
@@ -29,6 +30,11 @@ public class NominatimGeocoder implements Geocoder {
     
     public NominatimGeocoder() {
         nominatimJsonDeserializer = new NominatimJsonDeserializer();
+    }
+
+    public NominatimGeocoder(String nominatimUrl){
+        nominatimJsonDeserializer = new NominatimJsonDeserializer();
+        this.nominatimUrl = nominatimUrl;
     }
     
     public String getNominatimUrl() {
@@ -70,10 +76,10 @@ public class NominatimGeocoder implements Geocoder {
             // make json request
             URL nominatimGeocoderUrl = getNominatimGeocoderUrl(address, bbox);
             URLConnection conn = nominatimGeocoderUrl.openConnection();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
             
             StringBuilder sb = new StringBuilder(128);
-            String line = null;
+            String line;
             while ((line = reader.readLine()) != null) {
                 sb.append(line);
                 sb.append("\n");
@@ -87,10 +93,10 @@ public class NominatimGeocoder implements Geocoder {
         }
            
         List<NominatimGeocoderResult> nominatimResults = nominatimJsonDeserializer.parseResults(content);
-        List<GeocoderResult> geocoderResults = new ArrayList<GeocoderResult>();
+        List<GeocoderResult> geocoderResults = new ArrayList<>();
         for (NominatimGeocoderResult nominatimGeocoderResult : nominatimResults) {
-            Double lat = nominatimGeocoderResult.getLatDouble();
-            Double lng = nominatimGeocoderResult.getLngDouble();
+            double lat = nominatimGeocoderResult.getLatDouble();
+            double lng = nominatimGeocoderResult.getLngDouble();
             String displayName = nominatimGeocoderResult.getDisplay_name();
             GeocoderResult geocoderResult = new GeocoderResult(lat, lng, displayName);
             geocoderResults.add(geocoderResult);
