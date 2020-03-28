@@ -27,7 +27,7 @@ function build_graph {
   rm -rf $DIR/$GRAPHNAME || true
   mkdir -p $DIR
   unzip -o -d $DIR $FILE
-  mv $DIR/graph-$GRAPHNAME $DIR/$GRAPHNAME
+  mv $DIR/router-$GRAPHNAME $DIR/$GRAPHNAME
   java $JAVA_OPTS -jar $JAR --build $DIR/$GRAPHNAME
 }
 
@@ -35,7 +35,7 @@ function download_graph {
   NAME=$1
   VERSION=$2
   GRAPH_FILE=graph-$NAME.zip
-  URL=$(url $3 "graph-$NAME.zip")
+  URL=$(url $3 "graph-$NAME-$VERSION.zip")
   echo "Downloading graph from $URL"
   for i in {1..6}; do
     HTTP_STATUS=$(curl --write-out %{http_code} --silent --output $GRAPH_FILE $URL)
@@ -69,7 +69,7 @@ function version {
 
 function process {
   NAME=$1
-  URL=$(url $2 "graph-$NAME.zip")
+  URL=$(url $2 "router-$NAME.zip")
   FILE="$NAME.zip"
 
   echo "Retrieving graph source bundle from $URL"

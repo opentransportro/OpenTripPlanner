@@ -22,6 +22,7 @@ public class VeloTMBikeRentalDataSource implements BikeRentalDataSource, JsonCon
 
     private static final Logger log = LoggerFactory.getLogger(VeloTMBikeRentalDataSource.class);
     private String url;
+    private String provider;
     private String headerName;
     private String headerValue;
 
@@ -149,8 +150,8 @@ public class VeloTMBikeRentalDataSource implements BikeRentalDataSource, JsonCon
 
         BikeRentalStation brstation = new BikeRentalStation();
 
-        brstation.networks = new HashSet<String>();
-        brstation.networks.add("Velo TM");
+        brstation.networks = new HashSet<>();
+        brstation.networks.add(this.provider);
 
         brstation.id = rentalStationNode.path("Id").toString();
         brstation.x = rentalStationNode.path("Longitude").asDouble();
@@ -179,5 +180,11 @@ public class VeloTMBikeRentalDataSource implements BikeRentalDataSource, JsonCon
             throw new IllegalArgumentException("Missing mandatory 'url' configuration.");
         }
         this.url = url;
+
+        String provider = jsonNode.path("provider").asText();
+        if (provider == null) {
+            throw new IllegalArgumentException("Missing mandatory 'provider' configuration.");
+        }
+        this.provider = provider;
     }
 }
