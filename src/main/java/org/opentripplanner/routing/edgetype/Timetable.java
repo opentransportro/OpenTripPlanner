@@ -1,20 +1,15 @@
 package org.opentripplanner.routing.edgetype;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-
 import com.beust.jcommander.internal.Lists;
-
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor;
+import com.google.transit.realtime.GtfsRealtime.TripUpdate;
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent;
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
+import org.opentripplanner.common.MavenVersion;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.calendar.ServiceDate;
-import org.opentripplanner.common.MavenVersion;
 import org.opentripplanner.routing.core.ServiceDay;
 import org.opentripplanner.routing.core.State;
 import org.opentripplanner.routing.core.StopTransfer;
@@ -24,10 +19,8 @@ import org.opentripplanner.routing.trippattern.TripTimes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.transit.realtime.GtfsRealtime.TripDescriptor;
-import com.google.transit.realtime.GtfsRealtime.TripUpdate;
-import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent;
-import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
+import java.io.Serializable;
+import java.util.*;
 
 
 /**
@@ -572,6 +565,7 @@ public class Timetable implements Serializable {
                             StopTimeUpdate.ScheduleRelationship.NO_DATA) {
                         newTimes.updateArrivalDelay(i, 0);
                         newTimes.updateDepartureDelay(i, 0);
+                        newTimes.setStopWithNoData(i);
                         delay = 0;
                         if (firstDelay == null) firstDelay = delay;
                     } else {
