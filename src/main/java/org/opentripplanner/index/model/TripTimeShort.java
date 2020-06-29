@@ -1,5 +1,6 @@
 package org.opentripplanner.index.model;
 
+import com.beust.jcommander.internal.Lists;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
