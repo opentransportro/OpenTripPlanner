@@ -534,6 +534,10 @@ public class Timetable implements Serializable {
                 == TripDescriptor.ScheduleRelationship.CANCELED) {
             newTimes.cancel();
         } else {
+            //Whether the trip update has any stop estimates (some trip updates can contain only stop cancellations)
+            boolean hasUpdates = tripUpdate.getStopTimeUpdateList().stream()
+                                    .anyMatch(stopTimeUpdate -> !stopTimeUpdate.hasScheduleRelationship() || stopTimeUpdate.getScheduleRelationship() == StopTimeUpdate.ScheduleRelationship.SCHEDULED);
+
             // The GTFS-RT reference specifies that StopTimeUpdates are sorted by stop_sequence.
             Iterator<StopTimeUpdate> updates = tripUpdate.getStopTimeUpdateList().iterator();
             if (!updates.hasNext()) {
@@ -565,7 +569,10 @@ public class Timetable implements Serializable {
                             StopTimeUpdate.ScheduleRelationship.NO_DATA) {
                         newTimes.updateArrivalDelay(i, 0);
                         newTimes.updateDepartureDelay(i, 0);
-                        newTimes.setStopWithNoData(i);
+                        if (!hasUpdates) {
+                            //If trip update does not contain stop estimates, mark stop in TripTimes having no data
+                            newTimes.setStopWithNoData(i);
+                        }
                         delay = 0;
                         if (firstDelay == null) firstDelay = delay;
                     } else {
