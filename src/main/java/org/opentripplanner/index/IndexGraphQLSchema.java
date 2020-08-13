@@ -3716,7 +3716,9 @@ public class IndexGraphQLSchema {
                         .type(agencyType)
                         .dataFetcher(environment -> {
                             Leg leg = environment.getSource();
-                            return index.getAgencyWithFeedScopeId(leg.routeId.getAgencyId() + ":" + leg.agencyId);
+                            if(leg.routeId != null) {
+                                return index.getAgencyWithFeedScopeId(leg.routeId.getAgencyId() + ":" + leg.agencyId);
+                            } else return null;
                         })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
