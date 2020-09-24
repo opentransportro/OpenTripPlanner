@@ -29,8 +29,8 @@ if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
   docker login -u $DOCKER_USER -p $DOCKER_AUTH
   if [ "$TRAVIS_TAG" ];then
     echo "processing release $TRAVIS_TAG"
-    docker pull $DOCKER_IMAGE_DATE
-    docker tag $DOCKER_IMAGE_DATE $DOCKER_IMAGE_PROD
+    docker pull $DOCKER_IMAGE_LATEST
+    docker tag $DOCKER_IMAGE_LATEST $DOCKER_IMAGE_PROD
     docker push $DOCKER_IMAGE_PROD
   else
     echo "Pushing latest image"
