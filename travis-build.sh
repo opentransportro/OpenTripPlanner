@@ -14,6 +14,7 @@ DOCKER_IMAGE=$ORG/opentripplanner
 DOCKER_IMAGE_DATE=$DOCKER_IMAGE:$DOCKER_TAG
 DOCKER_IMAGE_LATEST=$DOCKER_IMAGE:latest
 DOCKER_IMAGE_PROD=$DOCKER_IMAGE:prod
+DOCKER_IMAGE_PROD_DATE=$DOCKER_IMAGE:prod-$(date +"%Y-%m-%d")
 
 if [ -z $TRAVIS_TAG ]; then
   # Build image
@@ -31,7 +32,9 @@ if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
     echo "processing release $TRAVIS_TAG"
     docker pull $DOCKER_IMAGE_LATEST
     docker tag $DOCKER_IMAGE_LATEST $DOCKER_IMAGE_PROD
+    docker tag $DOCKER_IMAGE_LATEST $DOCKER_IMAGE_PROD_DATE
     docker push $DOCKER_IMAGE_PROD
+    docker push $DOCKER_IMAGE_PROD_DATE
   else
     echo "Pushing latest image"
     docker push $DOCKER_IMAGE_DATE
