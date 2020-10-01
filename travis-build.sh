@@ -9,7 +9,7 @@ set -e
 #DOCKER_AUTH
 
 ORG=${ORG:-hsldevcom}
-DOCKER_TAG=$(date +"%m-%d")
+DOCKER_TAG=$(date +"%d")
 DOCKER_IMAGE=$ORG/opentripplanner
 DOCKER_IMAGE_DATE=$DOCKER_IMAGE:$DOCKER_TAG
 DOCKER_IMAGE_LATEST=$DOCKER_IMAGE:latest
