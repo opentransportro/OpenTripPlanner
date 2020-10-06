@@ -43,7 +43,7 @@ if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
     docker push $DOCKER_IMAGE_TAG
     docker push $DOCKER_IMAGE_TAG_LONG
   else
-    echo "Pushing latest image"
+    echo "Pushing $DOCKER_TAG image"
     docker push $DOCKER_IMAGE_TAG_LONG
     docker tag $DOCKER_IMAGE_TAG_LONG $DOCKER_IMAGE_TAG
     docker push $DOCKER_IMAGE_TAG
