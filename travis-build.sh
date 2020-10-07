@@ -9,12 +9,19 @@ set -e
 #DOCKER_AUTH
 
 ORG=${ORG:-hsldevcom}
-DOCKER_TAG=$(date +"%m-%d")
 DOCKER_IMAGE=$ORG/opentripplanner
-DOCKER_IMAGE_DATE=$DOCKER_IMAGE:$DOCKER_TAG
+DOCKER_TAG="latest"
+
+if [ "$TRAVIS_TAG" ]; then
+  DOCKER_TAG="prod"
+elif [ "$TRAVIS_BRANCH" != "master" ]; then
+  DOCKER_TAG=$TRAVIS_BRANCH
+fi
+
+DOCKER_TAG_LONG=$DOCKER_TAG-$(date +"%Y-%m-%dT%H.%M.%S")-${TRAVIS_COMMIT:0:7}
 DOCKER_IMAGE_LATEST=$DOCKER_IMAGE:latest
-DOCKER_IMAGE_PROD=$DOCKER_IMAGE:prod
-DOCKER_IMAGE_PROD_DATE=$DOCKER_IMAGE:prod-$(date +"%Y-%m-%d")
+DOCKER_IMAGE_TAG=$DOCKER_IMAGE:$DOCKER_TAG
+DOCKER_IMAGE_TAG_LONG=$DOCKER_IMAGE:$DOCKER_TAG_LONG
 
 if [ -z $TRAVIS_TAG ]; then
   # Build image
@@ -23,7 +30,7 @@ if [ -z $TRAVIS_TAG ]; then
   mkdir export
   docker run --rm --entrypoint tar "$ORG/$DOCKER_IMAGE:builder" -c target|tar x -C ./
   #package OTP quietly while keeping travis happpy
-  docker build --tag="$DOCKER_IMAGE_DATE" -f Dockerfile .
+  docker build --tag="$DOCKER_IMAGE_TAG_LONG" -f Dockerfile .
 fi
 
 if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
@@ -31,15 +38,15 @@ if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
   if [ "$TRAVIS_TAG" ];then
     echo "processing release $TRAVIS_TAG"
     docker pull $DOCKER_IMAGE_LATEST
-    docker tag $DOCKER_IMAGE_LATEST $DOCKER_IMAGE_PROD
-    docker tag $DOCKER_IMAGE_LATEST $DOCKER_IMAGE_PROD_DATE
-    docker push $DOCKER_IMAGE_PROD
-    docker push $DOCKER_IMAGE_PROD_DATE
+    docker tag $DOCKER_IMAGE_LATEST $DOCKER_IMAGE_TAG
+    docker tag $DOCKER_IMAGE_LATEST $DOCKER_IMAGE_TAG_LONG
+    docker push $DOCKER_IMAGE_TAG
+    docker push $DOCKER_IMAGE_TAG_LONG
   else
-    echo "Pushing latest image"
-    docker push $DOCKER_IMAGE_DATE
-    docker tag $DOCKER_IMAGE_DATE $DOCKER_IMAGE_LATEST
-    docker push $DOCKER_IMAGE_LATEST
+    echo "Pushing $DOCKER_TAG image"
+    docker push $DOCKER_IMAGE_TAG_LONG
+    docker tag $DOCKER_IMAGE_TAG_LONG $DOCKER_IMAGE_TAG
+    docker push $DOCKER_IMAGE_TAG
   fi
 fi
 
