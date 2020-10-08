@@ -26,10 +26,8 @@ DOCKER_IMAGE_TAG_LONG=$DOCKER_IMAGE:$DOCKER_TAG_LONG
 if [ -z $TRAVIS_TAG ]; then
   # Build image
   echo Building OTP
-  docker build --tag="$ORG/$DOCKER_IMAGE:builder" -f Dockerfile.builder .
-  mkdir export
-  docker run --rm --entrypoint tar "$ORG/$DOCKER_IMAGE:builder" -c target|tar x -C ./
-  #package OTP quietly while keeping travis happpy
+  docker build --tag="$DOCKER_IMAGE:builder" -f Dockerfile.builder .
+  docker run --rm --entrypoint tar "$DOCKER_IMAGE:builder" -c target|tar x -C ./
   docker build --tag="$DOCKER_IMAGE_TAG_LONG" -f Dockerfile .
 fi
 
