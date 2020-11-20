@@ -14,25 +14,25 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Kaakau (Kuopio, Finland) bike rental data source.
  * url: https://kaupunkipyorat.kuopio.fi/tkhs-export-map.html?format=xml
  */
-public class KaakauBikeRentalDataSource extends GenericXmlBikeRentalDataSource {
+public class KaakauBikeRentalDataSource extends GenericJsonBikeRentalDataSource {
 
     private String networkName;
 
     public KaakauBikeRentalDataSource(String networkName) {
-        super("//station");
+        super("result");
         this.networkName = Strings.isNullOrEmpty(networkName) ? "kaakau" : networkName;
     }
 
-    public BikeRentalStation makeStation(Map<String, String> attributes) {
+    public BikeRentalStation makeStation(JsonNode node) {
         BikeRentalStation station = new BikeRentalStation();
         station.networks = new HashSet<>(Collections.singleton(this.networkName));
-        station.id = attributes.get("name");
-        station.name = new NonLocalizedString(attributes.get("name"));
+	station.id = node.path("name").asText();
+        station.name = new NonLocalizedString(station.id);
         station.state = "Station on";
 
         try {
-            station.y = Double.parseDouble(node.path("coordinates").asText().split(",")[0].trim());
-            station.x = Double.parseDouble(node.path("coordinates").asText().split(",")[1].trim());
+            station.x = Double.parseDouble(node.path("coordinates").asText().split(",")[0].trim());
+            station.y = Double.parseDouble(node.path("coordinates").asText().split(",")[1].trim());
         } catch (NumberFormatException e) {
             // E.g. coordinates is empty
             return null;
