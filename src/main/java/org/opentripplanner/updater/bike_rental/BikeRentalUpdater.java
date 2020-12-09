@@ -103,8 +103,6 @@ public class BikeRentalUpdater extends PollingGraphUpdater {
                 source = new SharingOSBikeRentalDataSource(networkName);
             } else if (sourceType.equals("vilkku")) {
                 source = new VilkkuBikeRentalDataSource(networkName);
-            } else if (sourceType.equals("kaakau")) {
-                source = new KaakauBikeRentalDataSource(networkName);
             }
         }
 
