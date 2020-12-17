@@ -2,13 +2,13 @@ name: Process master push or pr
 on:
   push:
     branches:
-      - master
+      - dev-2.x
   pull_request:
     branches:
-      - master
+      - dev-2.x
 jobs:
   docker-push:
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/dev-2.x'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
