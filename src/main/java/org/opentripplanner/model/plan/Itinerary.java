@@ -68,8 +68,10 @@ public class Itinerary {
      * If a generalized cost is used in the routing algorithm, this should be the total
      * cost computed by the algorithm. This is relevant for anyone who want to debug an search
      * and tuning the system. The unit should be equivalent to the cost of "one second of transit".
+     * <p>
+     * -1 indicate that the cost is not set/computed.
      */
-    public int generalizedCost = 0;
+    public int generalizedCost = -1;
 
     /**
      * This itinerary has a greater slope than the user requested (but there are no possible
@@ -236,11 +238,11 @@ public class Itinerary {
                 .addCalTime("start", firstLeg().startTime)
                 .addCalTime("end", lastLeg().endTime)
                 .addNum("nTransfers", nTransfers, -1)
-                .addDuration("duration", durationSeconds)
+                .addDurationSec("duration", durationSeconds)
                 .addNum("generalizedCost", generalizedCost)
-                .addDuration("nonTransitTime", nonTransitTimeSeconds)
-                .addDuration("transitTime", transitTimeSeconds)
-                .addDuration("waitingTime", waitingTimeSeconds)
+                .addDurationSec("nonTransitTime", nonTransitTimeSeconds)
+                .addDurationSec("transitTime", transitTimeSeconds)
+                .addDurationSec("waitingTime", waitingTimeSeconds)
                 .addNum("nonTransitDistance", nonTransitDistanceMeters, "m")
                 .addBool("nonTransitLimitExceeded", nonTransitLimitExceeded)
                 .addBool("tooSloped", tooSloped)
