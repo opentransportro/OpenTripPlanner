@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-DOCKER_IMAGE="opentransportro/opentripplanner"
+DOCKER_IMAGE="opentransport/opentripplanner"
 DOCKER_TAG="prod"
 
 COMMIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
