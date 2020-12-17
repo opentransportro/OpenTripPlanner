@@ -368,18 +368,6 @@ public class IndexGraphQLSchema {
                     .build())
             .build();
 
-
-    private Agency getAgency(GraphIndex index, String agencyId) {
-        //xxx what if there are duplciate agency ids?
-        //now we return the first
-        for (Map<String, Agency> feedAgencies : index.agenciesForFeedId.values()) {
-            if (feedAgencies.get(agencyId) != null) {
-                return feedAgencies.get(agencyId);
-            }
-        }
-        return null;
-    }
-
     @SuppressWarnings("unchecked")
     public IndexGraphQLSchema(GraphIndex index) {
         createPlanType(index);
@@ -883,7 +871,10 @@ public class IndexGraphQLSchema {
                         .name("agency")
                         .description("Agency affected by the disruption. Note that this value is present only if the disruption has an effect on all operations of the agency (e.g. in case of a strike).")
                         .type(agencyType)
-                        .dataFetcher(environment -> getAgency(index, ((AlertPatch) environment.getSource()).getAgency()))
+                        .dataFetcher(environment -> {
+                            AlertPatch patch = (AlertPatch) environment.getSource();
+                            return index.getAgencyWithFeedScopeId(patch.getFeedId() + ":" + patch.getAgency());
+                        })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("route")
@@ -2257,7 +2248,7 @@ public class IndexGraphQLSchema {
                         .description("Global object ID provided by Relay. This value can be used to refetch this object using **node** query.")
                         .type(new GraphQLNonNull(Scalars.GraphQLID))
                         .dataFetcher(environment -> relay
-                                .toGlobalId(agencyType.getName(), ((Agency) environment.getSource()).getId()))
+                                .toGlobalId(agencyType.getName(), environment.<Agency>getSource().getFeedScopeId().toString()))
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("gtfsId")
@@ -2614,7 +2605,7 @@ public class IndexGraphQLSchema {
                     return index.patternForId.get(id.id);
                 }
                 if (id.type.equals(agencyType.getName())) {
-                    return index.getAgencyWithoutFeedId(id.id);
+                    return index.getAgencyWithFeedScopeId(id.id);
                 }
                 if (id.type.equals(alertType.getName())) {
                     return index.getAlertForId(id.id);
@@ -3446,10 +3437,28 @@ public class IndexGraphQLSchema {
                         .name("bikeRentalStations")
                         .description("Get all bike rental stations")
                         .type(new GraphQLList(bikeRentalStationType))
-                        .dataFetcher(dataFetchingEnvironment -> new ArrayList<>(
-                                index.graph.getService(BikeRentalStationService.class) != null
+                        .argument(GraphQLArgument.newArgument()
+                                .name("ids")
+                                .description("Return bike rental stations with these ids.  \n **Note:** if an id is invalid (or the bike rental station service is unavailable) the returned list will contain `null` values.")
+                                .type(new GraphQLList(Scalars.GraphQLString))
+                                .build())
+                        .dataFetcher(environment -> {
+                                if ((environment.getArgument("ids") instanceof List)) {
+                                        Map<String, BikeRentalStation> rentalStations =
+                                                index.graph.getService(BikeRentalStationService.class) != null
+                                                ? index.graph.getService(BikeRentalStationService.class).getBikeRentalStations()
+                                                        .stream()
+                                                        .collect(Collectors.toMap(station -> station.id, station ->  station))
+                                                : Collections.EMPTY_MAP;
+                                        return ((List<String>) environment.getArgument("ids"))
+                                                .stream()
+                                                .map(rentalStations::get)
+                                                .collect(Collectors.toList());
+                                }
+                                return new ArrayList<>(index.graph.getService(BikeRentalStationService.class) != null
                                         ? index.graph.getService(BikeRentalStationService.class).getBikeRentalStations()
-                                        : Collections.EMPTY_LIST))
+                                        : Collections.EMPTY_LIST);
+                        })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("bikeRentalStation")
@@ -3723,7 +3732,12 @@ public class IndexGraphQLSchema {
                         .name("agency")
                         .description("For transit legs, the transit agency that operates the service used for this leg. For non-transit legs, `null`.")
                         .type(agencyType)
-                        .dataFetcher(environment -> getAgency(index, ((Leg) environment.getSource()).agencyId))
+                        .dataFetcher(environment -> {
+                            Leg leg = environment.getSource();
+                            if(leg.routeId != null) {
+                                return index.getAgencyWithFeedScopeId(leg.routeId.getAgencyId() + ":" + leg.agencyId);
+                            } else return null;
+                        })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("realTime")
