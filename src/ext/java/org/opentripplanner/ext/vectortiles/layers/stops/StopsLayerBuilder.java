@@ -16,10 +16,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class StopsLayerBuilder extends LayerBuilder<TransitStopVertex> {
-  enum MapperType { Digitransit }
+  enum MapperType { Digitransit, Opentransport }
 
   static Map<MapperType, Function<Graph, PropertyMapper<TransitStopVertex>>> mappers = Map.of(
-      MapperType.Digitransit, DigitransitStopPropertyMapper::create
+      MapperType.Digitransit, DigitransitStopPropertyMapper::create,
+      MapperType.Opentransport, OpentransportStopPropertyMapper::create
   );
 
   private final Graph graph;

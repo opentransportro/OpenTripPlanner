@@ -17,10 +17,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class StationsLayerBuilder extends LayerBuilder<Station> {
-  enum MapperType { Digitransit }
+  enum MapperType { Digitransit, Opentransport }
 
   static Map<MapperType, Function<Graph, PropertyMapper<Station>>> mappers = Map.of(
-      MapperType.Digitransit, DigitransitStationPropertyMapper::create
+      MapperType.Digitransit, DigitransitStationPropertyMapper::create,
+      MapperType.Opentransport, OpentransportStationPropertyMapper::create
   );
 
   private final Graph graph;
