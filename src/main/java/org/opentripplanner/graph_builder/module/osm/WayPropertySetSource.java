@@ -25,6 +25,8 @@ public interface WayPropertySetSource {
 			return new UKWayPropertySetSource();
 		} else if ("finland".equals(type)) {
 			return new FinlandWayPropertySetSource();
+		} else if("romania".equals(type)) {
+			return new RomaniaWayPropertySetSource();
 		} else {
 			throw new IllegalArgumentException(String.format("Unknown osmWayPropertySet: '%s'", type));
 		}
