@@ -18,6 +18,7 @@ public enum DataSourceType {
   SMOOVE,
   UIP_BIKE,
   VCUV,
+  VELO,
 
   // GTFS RT
   GTFS_RT_HTTP,

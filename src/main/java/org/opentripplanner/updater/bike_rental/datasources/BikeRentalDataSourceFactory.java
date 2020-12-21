@@ -27,6 +27,7 @@ public class BikeRentalDataSourceFactory {
       case GBFS:          return new GbfsBikeRentalDataSource((GbfsBikeRentalDataSourceParameters) source);
       case SMOOVE:        return new SmooveBikeRentalDataSource(source);
       case BICIMAD:       return new BicimadBikeRentalDataSource(source);
+      case VELO:          return new VeloBikeRentalDataSource(source);
     }
     throw new IllegalArgumentException(
         "Unknown bike rental source type: " + source.getSourceType()

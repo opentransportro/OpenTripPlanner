@@ -38,6 +38,7 @@ public class BikeRentalSourceFactory {
     CONFIG_MAPPING.put("smoove", DataSourceType.SMOOVE);
     CONFIG_MAPPING.put("uip-bike", DataSourceType.UIP_BIKE);
     CONFIG_MAPPING.put("vcub", DataSourceType.VCUV);
+    CONFIG_MAPPING.put("velo", DataSourceType.VELO);
   }
 
   private final DataSourceType type;
