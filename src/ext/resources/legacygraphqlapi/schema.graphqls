@@ -607,6 +607,16 @@ input InputModeWeight {
     The weight of AIRPLANE traverse mode. Values over 1 add cost to airplane travel and values under 1 decrease cost
     """
     AIRPLANE: Float
+
+    """
+    The weight of TROLEYBUS traverse mode. Values over 1 add cost to airplane travel and values under 1 decrease cost
+    """
+    TROLEYBUS: Float
+
+    """
+    The weight of TROLEYBUS traverse mode. Values over 1 add cost to airplane travel and values under 1 decrease cost
+    """
+    SCHOOL_BUS: Float
 }
 
 input InputPreferred {
@@ -868,6 +878,12 @@ enum Mode {
 
     """TRAM"""
     TRAM
+
+    """TROLEYBUS"""
+    TROLEYBUS
+
+    """SCHOOL BUS"""
+    SCHOOL_BUS
 
     """A special transport mode, which includes all public transport."""
     TRANSIT

@@ -261,7 +261,9 @@ public class LegacyGraphQLTypes {
     private Double _GONDOLA;
     private Double _FUNICULAR;
     private Double _AIRPLANE;
-  
+    private Double _TROLEYBUS;
+    private Double _SCHOOL_BUS;
+
     public LegacyGraphQLInputModeWeightInput(Map<String, Object> args) {
       if (args != null) {
         this._TRAM = (Double) args.get("TRAM");
@@ -273,6 +275,8 @@ public class LegacyGraphQLTypes {
         this._GONDOLA = (Double) args.get("GONDOLA");
         this._FUNICULAR = (Double) args.get("FUNICULAR");
         this._AIRPLANE = (Double) args.get("AIRPLANE");
+        this._TROLEYBUS = (Double) args.get("TROLEYBUS");
+        this._SCHOOL_BUS = (Double) args.get("SCHOOL_BUS");
       }
     }
   
@@ -285,6 +289,8 @@ public class LegacyGraphQLTypes {
     public Double getLegacyGraphQLGondola() { return this._GONDOLA; }
     public Double getLegacyGraphQLFunicular() { return this._FUNICULAR; }
     public Double getLegacyGraphQLAirplane() { return this._AIRPLANE; }
+    public Double getLegacyGraphQLTroleyBus() { return this._TROLEYBUS; }
+    public Double getLegacyGraphQLSchoolBus() { return this._SCHOOL_BUS; }
   }
   public static class LegacyGraphQLInputPreferredInput {
     private String _routes;
@@ -378,6 +384,8 @@ public class LegacyGraphQLTypes {
     Rail("RAIL"),
     Subway("SUBWAY"),
     Tram("TRAM"),
+    Trolleybus("TROLEYBUS"),
+    SchoolBus("SCHOOL_BUS"),
     Transit("TRANSIT"),
     Walk("WALK");
     
