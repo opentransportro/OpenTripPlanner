@@ -10,5 +10,7 @@ public enum TransitMode {
   AIRPLANE,
   CABLE_CAR,
   GONDOLA,
-  FUNICULAR
+  FUNICULAR,
+  TROLLEY,
+  SCHOOL_BUS
 }

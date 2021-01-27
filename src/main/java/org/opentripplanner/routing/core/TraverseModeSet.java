@@ -42,8 +42,13 @@ public class TraverseModeSet implements Cloneable, Serializable {
 
     private static final int MODE_AIRPLANE = 4096;
 
+    private static final int MODE_SCHOOL_BUS = 8192;
+
+    private static final int MODE_TROLLEY = 16384;
+
     private static final int MODE_TRANSIT = MODE_TRAM | MODE_RAIL | MODE_SUBWAY | MODE_FUNICULAR
-            | MODE_GONDOLA | MODE_CABLE_CAR | MODE_BUS | MODE_FERRY | MODE_AIRPLANE;
+            | MODE_GONDOLA | MODE_CABLE_CAR | MODE_BUS | MODE_FERRY | MODE_AIRPLANE |
+            MODE_SCHOOL_BUS | MODE_TROLLEY;
  
     private static final int MODE_ALL = MODE_TRANSIT | MODE_WALK | MODE_BICYCLE;
 
@@ -92,6 +97,10 @@ public class TraverseModeSet implements Cloneable, Serializable {
             return MODE_RAIL;
         case AIRPLANE:
             return MODE_AIRPLANE;
+        case SCHOOL_BUS:
+            return MODE_SCHOOL_BUS;
+        case TROLLEY:
+            return MODE_TROLLEY;
         case TRANSIT:
             return MODE_TRANSIT;
         }
@@ -157,6 +166,14 @@ public class TraverseModeSet implements Cloneable, Serializable {
 
     public boolean getAirplane() {
         return (modes & MODE_AIRPLANE) != 0;
+    }
+
+    public boolean getSchoolBus() {
+        return (modes & MODE_SCHOOL_BUS) != 0;
+    }
+
+    public boolean getTrolley() {
+        return (modes & MODE_TROLLEY) != 0;
     }
 
     public void setBicycle(boolean bicycle) {
@@ -257,6 +274,21 @@ public class TraverseModeSet implements Cloneable, Serializable {
 
     }
 
+    public void setSchoolBus(boolean bus) {
+        if (bus) {
+            modes |= MODE_SCHOOL_BUS;
+        } else {
+            modes &= ~MODE_SCHOOL_BUS;
+        }
+    }
+
+    public void setTrolley(boolean trolley) {
+        if (trolley) {
+            modes |= MODE_TROLLEY;
+        } else {
+            modes &= ~MODE_TROLLEY;
+        }
+    }
     /** Returns true if the trip may use some transit mode */
     public boolean isTransit() {
         return (modes & (MODE_TRANSIT)) != 0;

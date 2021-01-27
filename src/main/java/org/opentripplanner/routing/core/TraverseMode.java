@@ -6,12 +6,13 @@ public enum TraverseMode {
     WALK, BICYCLE, CAR,
     TRAM, SUBWAY, RAIL, BUS, FERRY,
     CABLE_CAR, GONDOLA, FUNICULAR,
+    SCHOOL_BUS, TROLLEY,
     TRANSIT, AIRPLANE;
 
     public boolean isTransit() {
         return this == TRAM || this == SUBWAY || this == RAIL || this == BUS || this == FERRY
                 || this == CABLE_CAR || this == GONDOLA || this == FUNICULAR || this == TRANSIT
-                || this == AIRPLANE;
+                || this == AIRPLANE || this == SCHOOL_BUS || this == TROLLEY;
     }
 
     public boolean isOnStreetNonTransit() {
