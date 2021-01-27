@@ -113,7 +113,8 @@ public class GtfsBundle {
      */
     public GtfsFeedId getFeedId() {
         if (feedId == null) {
-            feedId = new GtfsFeedId.Builder().fromGtfsFeed(getCsvInputSource()).build();
+            var feedName = dataSource.name().replaceFirst("[.][^.]+$", "");
+            feedId = new GtfsFeedId.Builder().fromGtfsFeed(getCsvInputSource()).build(feedName);
         }
         return feedId;
     }

@@ -73,7 +73,7 @@ deployment.
 {
   storage : {
     gsCredentials: "${GCS_SERVICE_CREDENTIALS}",
-    graph: "file:///var/otp/graph-${maven.version.short}.obj",
+    graph: "file:///var/otp/graph-${otp.serialization.version.id}.obj",
   }
 }
 ```     
@@ -91,7 +91,9 @@ The project information variables available are:
   - `git.branch`
   - `git.commit`
   - `git.commit.timestamp`
-
+  - `graph.file.header`
+  - `otp.serialization.version.id`
+  
 
 ## Config version 
 
@@ -106,6 +108,30 @@ you can do it in your build-pipline, at deployment time or use system environmen
 substituton. 
 
 
+## OTP Serialization version id and _Graph.obj_ file header
+ 
+OTP has a _OTP Serialization Version Id_ maintained in the pom.xml_ file. OTP store the id in the
+serialized _Graph.obj_ file header, allowing OTP the check for compatibility issues when loading
+the graph. The header info is available to configuration substitution:
+
+  - `${graph.file.header}` Will expand to: `OpenTripPlannerGraph;0000007;`
+  - `${otp.serialization.version.id}` Will expand to: `7`
+ 
+The intended usage is to be able to have a graph build pipeline which "knows" witch graph 
+that matches OTP planner instances. For example, you may build new graphs for every OTP 
+serialization version id in use by the planning OPT instances you have deploied and plan to deploy.
+This way you can roll forward and backward new OTP instances without worring about building new 
+graphs.
+
+There is various ways to acces this information. To get the `Graph.obj` serialization version id 
+you can run the following bash command:
+ - `head -c 29 Graph.obj  ==>  OpenTripPlannerGraph;0000007;` (file header)
+ - `head -c 28 Graph.obj | tail -c 7  ==>  0000007`  (version id)
+ 
+The Maven _pom.xml_, the _META-INF/MANIFEST.MF_, the OTP command line(`--serVerId`), log start-up
+messages and all OTP APIs can be used to get the OTP Serialization Version Id.  
+              
+ 
 # System-wide Configuration
 
 Using the file `otp-config.json` you can enable or disable different APIs and experimental
@@ -176,6 +202,7 @@ The storage section of `build-config.json` allows you to override the default be
 
 If your OTP instance is running on a cloud compute service, you may get significantly faster start-up and graph build times if you use the cloud storage directly instead of copying the files back and forth to cloud server instances. This also simplifies the deployment process. 
 
+
 ### Specifying Data Sources
 
 Here is a summary of the configuration keys that can be nested inside the`storage` property of the build-config JSON to specify input and output data sources:
@@ -213,6 +240,7 @@ The default behavior of scanning the base directory for inputs is overridden ind
 See the comments in the source code of class [StorageConfig.java](https://github.com/opentripplanner/OpenTripPlanner/blob/v2.0.0/src/main/java/org/opentripplanner/standalone/config/StorageConfig.java) 
 for an up-to-date detailed description of each config parameter.
 
+
 ### Local Filename Patterns
 
 When scanning the base directory for inputs, each file's name is checked against patterns to detect what kind of file it is. These patterns can be overridden in the config, by nesting a `localFileNamePatterns` property inside the `storage` property (see example below). Here are the keys you can place inside `localFileNamePatterns`:
@@ -225,6 +253,7 @@ config key | description | value type | value default
 `netex` | Pattern used to match NeTEx files on local disk | regexp pattern | `(?i)netex` 
 
 OTP1 used to peek inside ZIP files and read the CSV tables to guess if a ZIP was indeed GTFS. Now that we support remote input files (cloud storage or arbitrary URLs) not all data sources allow seeking within files to guess what they are. Therefore, like all other file types GTFS is now detected from a filename pattern. It is not sufficient to look for the `.zip` extension because Netex data is also often supplied in a ZIP file. 
+
 
 ### Storage example
 
@@ -244,11 +273,13 @@ OTP1 used to peek inside ZIP files and read the CSV tables to guess if a ZIP was
 }
 ```
 
+
 ## Limit the transit service period
 
 The properties `transitServiceStart` and `transitServiceEnd` can be used to limit the service dates. This affects both GTFS service calendars and dates. The service calendar is reduced and dates outside the period are dropped. OTP2 will compute a transit schedule for every day for which it can find at least one trip running. On the other hand, OTP will waste resources if a service end date is *unbounded* or very large (`9999-12-31`). To avoid this, limit the OTP service period. Also, if you provide a service with multiple feeds they may have different service end dates. To avoid inconsistent results, the period can be limited, so all feeds have data for the entire period. The default is to use a period of 1 year before, and 3 years after the day the graph is built. Limiting the period will *not* improve the search performance, but OTP will build faster and load faster in most cases.
 
 The `transitServiceStart` and `transitServiceEnd` parameters are set using an absolute date like `2020-12-31` or a period like `P1Y6M5D` relative to the graph build date. Negative periods is used to specify dates in the past. The period is computed using the system time-zone, not the feed time-zone. Also, remember that the service day might be more than 24 hours. So be sure to include enough slack to account for the this. Setting the limits too wide have very little impact and is in general better than trying to be exact. The period and date format follow the ISO 8601 standard.
+
 
 ## Reaching a subway platform
 
@@ -607,30 +638,39 @@ OTP2 may produce numerous _pareto-optimal_ results when using `time`, `number-of
 config key | description | value type | value default
 ---------- | ----------- | ---------- | -------------
 `debugItineraryFilter` | Enable this to attach a system notice to itineraries instead of removing them. Some filters are not configurable, byt will show up in the system-notice if debugging is enabled. | boolean | `false`
-`groupBySimilarityKeepOne` | Pick ONE itinerary from each group after putting itineraries that is 85% similar together. | double | `0.85` (85%)
-`groupBySimilarityKeepNumOfItineraries` | Reduce the number of itineraries to the requested number by reducing each group of itineraries grouped by 68% similarity. | double | `0.68` (68%)
+`groupBySimilarity.keepOne` | Pick ONE itinerary from each group after putting itineraries that is 85% similar together. | double | `0.85` (85%)
+`groupBySimilarity.keepNumOfItineraries` | Reduce the number of itineraries to the requested number by reducing each group of itineraries grouped by 68% similarity. | double | `0.68` (68%)
+`groupBySimilarity.minSafeTransferTimeFactor` | Used add a additional cost for short transfers on long transit itineraries. See javaDoc on `AdjustedCost` details. | double | `0.0`
 `transitGeneralizedCostLimit` | A relative maximum limit for the generalized cost for transit itineraries. The limit is a linear function of the minimum generalized-cost. The function is used to calculate a max-limit. The max-limit is then used to to filter by generalized-cost. Transit itineraries with a cost higher than the max-limit is dropped from the result set. None transit itineraries is excluded from the filter. To set a filter to be 1 hour plus 2 times the best cost use: `3600 + 2.0 x`. To set an absolute value(3000) use: `3000 + 0x`  | linear function | `null`
 
 
 ### Group-by-filters
+Nested inside `routingDefaults { groupBySimilarity{...} }` in `router-config.json`.
 
 The group-by-filter is a bit complex, but should be simple to use. Set `debugItineraryFilter=true` 
 and experiment with `searchWindow` and the two group-by parameters(`debugItineraryFilter` and 
-`groupBySimilarityKeepNumOfItineraries`). 
+`keepNumOfItineraries`). 
 
 The group-by-filter work by grouping itineraries together and then reducing the number of 
-itineraries in each group, keeping the itinerary/itineraries with the best _generalized-cost_. The 
-group-by function first pick all transit legs that account for more than N% of the itinerary based 
-on distance traveled. This become the group-key. To keys are the same if all legs in one of the keys
-also exist in the other. Note, one key may have a lager set of legs than the other, but they can 
-still be the same. When comparing to legs we compare the `tripId` and make sure the legs overlap in
-place and time. Two legs are the same if both legs ride at least a common subsection of the same 
-trip. The `groupBySimilarityKeepOne` filter will keep ONE itinerary in each group. The 
-`groupBySimilarityKeepNumOfItineraries` is a bit more complex, because it uses the 
-`numOfItineraries` request parameter to estimate a maxLimit for each group. For example, if the 
-`numOfItineraries` is 5 elements and there is 3 groups, we set the _max-limit_ for each group
-to 2, returning between 4 and 6 elements depending on the distribution. The _max-limit_ can never 
-be less than 1.
+itineraries in each group, keeping the itinerary/itineraries with the best _cost_(the itinerary 
+_generalized-cost_ or the _adjusted-cost_). The group-by function first pick all transit legs that
+account for more than N% of the itinerary based on distance traveled. This become the group-key. To
+keys are the same if all legs in one of the keys also exist in the other. Note, one key may have a
+lager set of legs than the other, but they can still be the same. When comparing to legs we compare
+the `tripId` and make sure the legs overlap in place and time. Two legs are the same if both legs
+ride at least a common subsection of the same trip. The `keepOne` filter will keep ONE itinerary in
+each group. The `keepNumOfItineraries` is a bit more complex, because it uses the
+`numOfItineraries` request parameter to estimate a maxLimit for each group. For example, if the
+`numOfItineraries` is 5 elements and there is 3 groups, we set the _max-limit_ for each group to 2,
+returning between 4 and 6 elements depending on the distribution. The _max-limit_ can never be less
+than 1.
+
+The `minSafeTransferTimeFactor` will cause the filter to use a _adjusted-cost_, not the standard 
+itinerary _generalized-cost_. The adjusted cost add cost to the generalized-cost to better reflect
+"human-experienced-cost". The filter calculates a _min-safe-transfer-time_ based on the
+total-travel-time. The _min-safe-transfer-time_ range from 2 minutes for a 10 minutes journey to 
+30 minutes for a 10 hours journey. Then for each transfer the difference between the 
+actual-transfer-time and the min-safe-transfer-time is multiplied with the `minSafeTransferTimeFactor`. 
 
 
 ### Drive-to-transit routing defaults

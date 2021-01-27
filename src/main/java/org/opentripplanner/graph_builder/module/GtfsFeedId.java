@@ -108,5 +108,13 @@ public class GtfsFeedId {
             FEED_ID_COUNTER++;
             return new GtfsFeedId(id);
         }
+
+        public GtfsFeedId build(String defaultVal) {
+            id = cleanId(id);
+            if (id == null || id.trim().length() == 0) {
+                id = defaultVal;
+            }
+            return new GtfsFeedId(id);
+        }
     }
 }
