@@ -6,17 +6,15 @@ name: OTP CI Build
 on:
   push:
     branches:
-      - master
-      - dev-1.x
-      - dev-2.x
+      - otp1_opentransport
+      - otp2_opentransport
   pull_request:
     branches:
-      - master
-      - dev-1.x
-      - dev-2.x
+      - otp1_opentransport
+      - otp2_opentransport
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       # Starting in v2.2 checkout action fetches all tags when fetch-depth=0, for auto-versioning.
       - uses: actions/checkout@v2.3.2
@@ -35,7 +33,7 @@ jobs:
       - name: Build and Test
         run: mvn --batch-mode --update-snapshots verify
       - name: Deploy to Github Package Registry
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev-1.x' || github.ref == 'refs/heads/dev-2.x')
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/otp1_opentransport' || github.ref == 'refs/heads/otp2_opentransport')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: mvn --batch-mode deploy --settings maven-settings.xml -DskipTests
