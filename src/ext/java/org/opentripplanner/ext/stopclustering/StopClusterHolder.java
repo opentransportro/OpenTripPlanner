@@ -28,7 +28,6 @@ public class StopClusterHolder {
     public final Map<Stop, StopCluster> stopClusterForStop = Maps.newHashMap();
     public final Map<Station, List<StopCluster>> stopClusterForStation = Maps.newHashMap();
     public final Map<FeedScopedId, StopCluster> stopClusterForId = Maps.newHashMap();
-    public final Map<String, StopCluster> stopClusterForFeed = Maps.newHashMap();
 
     private HashGridSpatialIndex<StopCluster> stopClusterSpatialIndex = null;
 
@@ -122,7 +121,6 @@ public class StopClusterHolder {
             }
             cluster.computeCenter();
             stopClusterForId.put(cluster.getId(), cluster);
-            stopClusterForFeed.put(cluster.getId().getFeedId(), cluster);
         }
     }
 

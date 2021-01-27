@@ -87,9 +87,6 @@ public final class FeedScopedId implements Serializable, Comparable<FeedScopedId
         if (index == -1) {
             throw new IllegalArgumentException("invalid feed-scoped-id: " + value);
         } else {
-            if(index == value.length() - 1) {
-                return new FeedScopedId(value.substring(0, index), "*");
-            }
             return new FeedScopedId(value.substring(0, index), value.substring(index + 1));
         }
     }

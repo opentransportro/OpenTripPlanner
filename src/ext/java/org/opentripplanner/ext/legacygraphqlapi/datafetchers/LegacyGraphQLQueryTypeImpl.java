@@ -174,8 +174,12 @@ public class LegacyGraphQLQueryTypeImpl
             .map(routingService::getStopForId)
             .collect(Collectors.toList());
       }
-
       Stream<Stop> stopStream = routingService.getAllStops().stream();
+
+      if (args.getLegacyGraphQLFeeds() != null) {
+        List<String> feeds = StreamSupport.stream(args.getLegacyGraphQLFeeds().spliterator(), false).collect(Collectors.toList());
+        stopStream = stopStream.filter(stop -> feeds.contains(stop.getId().getFeedId()));
+      }
 
       if (args.getLegacyGraphQLName() != null) {
         String name = args.getLegacyGraphQLName().toLowerCase(environment.getLocale());
@@ -479,38 +483,38 @@ public class LegacyGraphQLQueryTypeImpl
 
       RoutingService routingService = getRoutingService(environment);
       StopClusterHolder clusterHolder = routingService.getStopClusterHolder();
+
       if (args.getLegacyGraphQLIds() != null) {
         return StreamSupport
                 .stream(args.getLegacyGraphQLIds().spliterator(), false)
                 .map(FeedScopedId::parseId)
-                .map(id -> {
-                  if ("*".equals(id.getId())) {
-                    return clusterHolder.stopClusterForFeed.get(id.getFeedId());
-                  }
-
-                  return clusterHolder.stopClusterForId.get(id);
-                })
+                .map(clusterHolder.stopClusterForId::get)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
       }
 
-      Stream<StopCluster> stopStream = clusterHolder
+      Stream<StopCluster> stopClusterStream = clusterHolder
               .stopClusterForId.values()
               .stream();
 
+      if (args.getLegacyGraphQLFeeds() != null) {
+        List<String> feeds = StreamSupport.stream(args.getLegacyGraphQLFeeds().spliterator(), false).collect(Collectors.toList());
+        stopClusterStream = stopClusterStream.filter(stopCluster -> feeds.contains(stopCluster.getId().getFeedId()));
+      }
+
       if (args.getLegacyGraphQLName() != null) {
         String name = args.getLegacyGraphQLName().toLowerCase(environment.getLocale());
-        stopStream = stopStream.filter(cluster -> cluster
+        stopClusterStream = stopClusterStream.filter(cluster -> cluster
                 .getName()
                 .toLowerCase(environment.getLocale())
                 .startsWith(name));
       }
       Integer maxResults = args.getLegacyGraphQLMaxResults();
       if (maxResults != null) {
-        stopStream = stopStream.limit(maxResults);
+        stopClusterStream = stopClusterStream.limit(maxResults);
       }
 
-      return stopStream.collect(Collectors.toList());
+      return stopClusterStream.collect(Collectors.toList());
     };
   }
 
