@@ -525,16 +525,22 @@ public class LegacyGraphQLTypes {
   public static class LegacyGraphQLQueryTypeStopsArgs {
     private Iterable<String> _ids;
     private String _name;
+    private Iterable<String> _feeds;
+    private Integer _maxResults;
   
     public LegacyGraphQLQueryTypeStopsArgs(Map<String, Object> args) {
       if (args != null) {
         this._ids = (Iterable<String>) args.get("ids");
         this._name = (String) args.get("name");
+        this._feeds = (Iterable<String>) args.get("feeds");
+        this._maxResults = (Integer) args.get("maxResults");
       }
     }
   
     public Iterable<String> getLegacyGraphQLIds() { return this._ids; }
     public String getLegacyGraphQLName() { return this._name; }
+    public Iterable<String> getLegacyGraphQLFeeds() { return this._feeds; }
+    public Integer getLegacyGraphQLMaxResults() { return this._maxResults; }
   }
   public static class LegacyGraphQLQueryTypeStopsByBboxArgs {
     private Double _minLat;
@@ -817,6 +823,26 @@ public class LegacyGraphQLTypes {
     }
   
     public String getLegacyGraphQLId() { return this._id; }
+  }
+  public static class LegacyGraphQLQueryTypeClustersArgs {
+    private Iterable<String> _ids;
+    private String _name;
+    private Iterable<String> _feeds;
+    private Integer _maxResults;
+
+    public LegacyGraphQLQueryTypeClustersArgs(Map<String, Object> args) {
+      if (args != null) {
+        this._ids = (Iterable<String>) args.get("ids");
+        this._name = (String) args.get("name");
+        this._feeds = (Iterable<String>) args.get("feeds");
+        this._maxResults = (Integer) args.get("maxResults");
+      }
+    }
+
+    public Iterable<String> getLegacyGraphQLIds() { return this._ids; }
+    public String getLegacyGraphQLName() { return this._name; }
+    public Iterable<String> getLegacyGraphQLFeeds() { return this._feeds; }
+    public Integer getLegacyGraphQLMaxResults() { return this._maxResults; }
   }
   public static class LegacyGraphQLQueryTypeAlertsArgs {
     private Iterable<String> _feeds;

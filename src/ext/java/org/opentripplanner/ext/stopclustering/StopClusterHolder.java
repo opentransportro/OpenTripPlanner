@@ -16,6 +16,7 @@ import org.opentripplanner.routing.vertextype.TransitStopVertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 
 public class StopClusterHolder {
@@ -25,7 +26,9 @@ public class StopClusterHolder {
 
     private static final int CLUSTER_RADIUS = 300; // meters
     public final Map<Stop, StopCluster> stopClusterForStop = Maps.newHashMap();
-    public final Map<String, StopCluster> stopClusterForId = Maps.newHashMap();
+    public final Map<Station, List<StopCluster>> stopClusterForStation = Maps.newHashMap();
+    public final Map<FeedScopedId, StopCluster> stopClusterForId = Maps.newHashMap();
+    public final Map<String, StopCluster> stopClusterForFeed = Maps.newHashMap();
 
     private HashGridSpatialIndex<StopCluster> stopClusterSpatialIndex = null;
 
@@ -89,7 +92,11 @@ public class StopClusterHolder {
             if (stopClusterForStop.containsKey(s0))
                 continue; // skip stops that have already been claimed by a cluster
 
-            StopCluster cluster = new StopCluster(String.format("C%03d", psIdx++), s0.getName());
+            StopCluster cluster = new StopCluster(
+                    new FeedScopedId(
+                            s0.getId().getFeedId(),
+                            String.format("C%03d", psIdx++)
+                    ), s0.getName());
 
             // No need to explicitly add s0 to the cluster. It will be found in the spatial index query below.
             Envelope env = new Envelope(new Coordinate(s0.getLon(), s0.getLat()));
@@ -102,7 +109,7 @@ public class StopClusterHolder {
                 if (geoDistance < CLUSTER_RADIUS || s1.getName().equals(s0.getName())) {
 
                     JaroWinklerDistance winklerDistance = new JaroWinklerDistance();
-                    if(winklerDistance.apply(s1.getName(), s0.getName()) > 0.5) {
+                    if(winklerDistance.apply(s1.getName(), s0.getName()) > 0.7) {
                         // Create a bidirectional relationship between the stop and its cluster
                         cluster.getChildStops().add(s1);
                         LOG.info("adding stop {} to cluster {}, cluster size = {}",
@@ -115,6 +122,7 @@ public class StopClusterHolder {
             }
             cluster.computeCenter();
             stopClusterForId.put(cluster.getId(), cluster);
+            stopClusterForFeed.put(cluster.getId().getFeedId(), cluster);
         }
     }
 
@@ -137,13 +145,12 @@ public class StopClusterHolder {
                 continue;
             }
             StopCluster cluster;
-            if (stopClusterForId.containsKey(ps.getName())) {
-                cluster = stopClusterForId.get(ps.getName());
+            if (stopClusterForId.containsKey(ps.getId())) {
+                cluster = stopClusterForId.get(ps.getId());
             } else {
-                cluster = new StopCluster(ps.getName(), stop.getName());
-
+                cluster = new StopCluster(ps.getId(), stop.getName());
                 cluster.setCoordinates(ps.getLat(), ps.getLon());
-                stopClusterForId.put(ps.getName(), cluster);
+                stopClusterForId.put(ps.getId(), cluster);
             }
             cluster.getChildStops().add(stop);
             stopClusterForStop.put(stop, cluster);

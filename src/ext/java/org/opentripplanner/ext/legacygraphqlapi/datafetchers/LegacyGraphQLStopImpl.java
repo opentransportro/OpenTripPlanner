@@ -7,6 +7,7 @@ import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.ext.legacygraphqlapi.LegacyGraphQLRequestContext;
 import org.opentripplanner.ext.legacygraphqlapi.generated.LegacyGraphQLDataFetchers;
 import org.opentripplanner.ext.legacygraphqlapi.generated.LegacyGraphQLTypes;
+import org.opentripplanner.ext.stopclustering.models.StopCluster;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Station;
@@ -19,6 +20,7 @@ import org.opentripplanner.routing.RoutingService;
 import org.opentripplanner.routing.alertpatch.TransitAlert;
 import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graphfinder.NearbyStop;
+import org.opentripplanner.util.OTPFeature;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -188,8 +190,23 @@ public class LegacyGraphQLStopImpl implements LegacyGraphQLDataFetchers.LegacyGr
   }
 
   @Override
-  public DataFetcher<Object> cluster() {
-    return environment -> null;
+  public DataFetcher<StopCluster> cluster() {
+    if (OTPFeature.StopClustering.isOff())
+      return null;
+
+    return environment -> {
+      Object obj = environment.getSource();
+      var clusterHolder = getRoutingService(environment).getStopClusterHolder();
+      if (obj instanceof Stop) {
+        return clusterHolder.stopClusterForStop.get(obj);
+      } else if (obj instanceof Station) {
+        var stop = ((Station) obj).getChildStops().stream().findFirst();
+        if (stop.isPresent())
+          return clusterHolder.stopClusterForStop.get(stop.get());
+      }
+
+      return null;
+    };
   }
 
   @Override

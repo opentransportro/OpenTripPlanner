@@ -15,6 +15,7 @@ import org.opentripplanner.api.parameter.QualifiedModeSet;
 import org.opentripplanner.ext.legacygraphqlapi.LegacyGraphQLRequestContext;
 import org.opentripplanner.ext.legacygraphqlapi.generated.LegacyGraphQLDataFetchers;
 import org.opentripplanner.ext.legacygraphqlapi.generated.LegacyGraphQLTypes;
+import org.opentripplanner.ext.stopclustering.StopClusterHolder;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.GenericLocation;
@@ -25,6 +26,7 @@ import org.opentripplanner.model.TransitMode;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.TripTimeShort;
+import org.opentripplanner.ext.stopclustering.models.StopCluster;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.RoutingService;
 import org.opentripplanner.routing.alertpatch.TransitAlert;
@@ -42,6 +44,7 @@ import org.opentripplanner.routing.core.FareRuleSet;
 import org.opentripplanner.routing.error.RoutingValidationException;
 import org.opentripplanner.routing.vertextype.TransitStopVertex;
 import org.opentripplanner.updater.GtfsRealtimeFuzzyTripMatcher;
+import org.opentripplanner.util.OTPFeature;
 import org.opentripplanner.util.ResourceBundleSingleton;
 
 import java.time.Duration;
@@ -91,7 +94,7 @@ public class LegacyGraphQLQueryTypeImpl
         case "CarPark":
           return null; //TODO
         case "Cluster":
-          return null; //TODO
+          return routingService.getStopClusterHolder().stopClusterForId.get(FeedScopedId.parseId(id).getId());
         case "DepartureRow":
           return PatternAtStop.fromId(routingService, id);
         case "Pattern":
@@ -467,13 +470,58 @@ public class LegacyGraphQLQueryTypeImpl
   }
 
   @Override
-  public DataFetcher<Iterable<Object>> clusters() {
-    return environment -> Collections.EMPTY_LIST;
+  public DataFetcher<Iterable<StopCluster>> clusters() {
+    if (OTPFeature.StopClustering.isOff())
+      return environment -> List.of();
+
+    return environment -> {
+      var args = new LegacyGraphQLTypes.LegacyGraphQLQueryTypeClustersArgs(environment.getArguments());
+
+      RoutingService routingService = getRoutingService(environment);
+      StopClusterHolder clusterHolder = routingService.getStopClusterHolder();
+      if (args.getLegacyGraphQLIds() != null) {
+        return StreamSupport
+                .stream(args.getLegacyGraphQLIds().spliterator(), false)
+                .map(FeedScopedId::parseId)
+                .map(id -> {
+                  if ("*".equals(id.getId())) {
+                    return clusterHolder.stopClusterForFeed.get(id.getFeedId());
+                  }
+
+                  return clusterHolder.stopClusterForId.get(id);
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+      }
+
+      Stream<StopCluster> stopStream = clusterHolder
+              .stopClusterForId.values()
+              .stream();
+
+      if (args.getLegacyGraphQLName() != null) {
+        String name = args.getLegacyGraphQLName().toLowerCase(environment.getLocale());
+        stopStream = stopStream.filter(cluster -> cluster
+                .getName()
+                .toLowerCase(environment.getLocale())
+                .startsWith(name));
+      }
+      Integer maxResults = args.getLegacyGraphQLMaxResults();
+      if (maxResults != null) {
+        stopStream = stopStream.limit(maxResults);
+      }
+
+      return stopStream.collect(Collectors.toList());
+    };
   }
 
   @Override
-  public DataFetcher<Object> cluster() {
-    return environment -> null;
+  public DataFetcher<StopCluster> cluster() {
+    if(OTPFeature.StopClustering.isOff())
+      return environment -> null;
+
+    return environment -> getRoutingService(environment).getStopClusterHolder().stopClusterForId.get(
+            new LegacyGraphQLTypes.LegacyGraphQLQueryTypeClusterArgs(environment.getArguments())
+                    .getLegacyGraphQLId());
   }
 
   //TODO
@@ -558,9 +606,7 @@ public class LegacyGraphQLQueryTypeImpl
   //TODO
   @Override
   public DataFetcher<Object> carPark() {
-    return environment -> {
-      return null;
-    };
+    return environment -> null;
   }
 
   @Override

@@ -8,12 +8,8 @@ import graphql.schema.TypeResolver;
 import org.locationtech.jts.geom.Coordinate;
 import org.opentripplanner.api.resource.DebugOutput;
 import org.opentripplanner.common.model.P2;
-import org.opentripplanner.model.Agency;
-import org.opentripplanner.model.Route;
-import org.opentripplanner.model.StopTimesInPattern;
-import org.opentripplanner.model.Trip;
-import org.opentripplanner.model.TripPattern;
-import org.opentripplanner.model.TripTimeShort;
+import org.opentripplanner.ext.stopclustering.models.StopCluster;
+import org.opentripplanner.model.*;
 import org.opentripplanner.model.plan.Itinerary;
 import org.opentripplanner.model.plan.Leg;
 import org.opentripplanner.model.plan.StopArrival;
@@ -114,7 +110,7 @@ public class LegacyGraphQLDataFetchers {
     public DataFetcher<String> name();
     public DataFetcher<Double> lat();
     public DataFetcher<Double> lon();
-    public DataFetcher<Iterable<Object>> stops();
+    public DataFetcher<Iterable<Stop>> stops();
   }
   
   public interface LegacyGraphQLCoordinates {
@@ -325,8 +321,8 @@ public class LegacyGraphQLDataFetchers {
     public DataFetcher<Iterable<TripTimeShort>> cancelledTripTimes();
     public DataFetcher<Iterable<TripPattern>> patterns();
     public DataFetcher<TripPattern> pattern();
-    public DataFetcher<Iterable<Object>> clusters();
-    public DataFetcher<Object> cluster();
+    public DataFetcher<Iterable<StopCluster>> clusters();
+    public DataFetcher<StopCluster> cluster();
     public DataFetcher<Iterable<TransitAlert>> alerts();
     public DataFetcher<Object> serviceTimeRange();
     public DataFetcher<Iterable<BikeRentalStation>> bikeRentalStations();
@@ -402,7 +398,7 @@ public class LegacyGraphQLDataFetchers {
     public DataFetcher<Integer> vehicleType();
     public DataFetcher<String> vehicleMode();
     public DataFetcher<String> platformCode();
-    public DataFetcher<Object> cluster();
+    public DataFetcher<StopCluster> cluster();
     public DataFetcher<Iterable<Object>> stops();
     public DataFetcher<Iterable<Route>> routes();
     public DataFetcher<Iterable<TripPattern>> patterns();

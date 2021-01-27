@@ -1,6 +1,7 @@
 package org.opentripplanner.ext.stopclustering.models;
 
 import com.google.common.collect.Lists;
+import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.TransitEntity;
 import org.slf4j.Logger;
@@ -21,14 +22,14 @@ public class StopCluster {
 
     private static final Logger LOG = LoggerFactory.getLogger(StopCluster.class);
 
-    private final String id;
+    private final FeedScopedId id;
     private final String name;
 
     private double lon;
     private double lat;
     private final List<Stop> children = Lists.newArrayList();
 
-    public StopCluster(String id, String name) {
+    public StopCluster(FeedScopedId id, String name) {
         super();
         this.id = id;
         this.name = name;
@@ -49,7 +50,7 @@ public class StopCluster {
         lat = latSum / children.size();
     }
 
-    public String getId() {
+    public FeedScopedId getId() {
         return id;
     }
 
