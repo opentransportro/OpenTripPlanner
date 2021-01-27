@@ -911,6 +911,15 @@ public class Graph implements Serializable {
         return res == null ? Collections.emptyList() : res;
     }
 
+    public GroupOfStations getGroupOfStationsForId(FeedScopedId id) {
+        return groupOfStationsById.get(id);
+    }
+
+    public Collection<GroupOfStations> getGroupOfStationsCollection()
+    {
+        return groupOfStationsById.values();
+    }
+
     public TripPattern getTripPatternForId(FeedScopedId id) {
         return tripPatternForId.get(id);
     }

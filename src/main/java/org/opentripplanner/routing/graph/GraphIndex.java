@@ -11,6 +11,8 @@ import org.locationtech.jts.geom.Envelope;
 import org.opentripplanner.common.geometry.CompactElevationProfile;
 import org.opentripplanner.common.geometry.HashGridSpatialIndex;
 import org.opentripplanner.ext.flex.FlexIndex;
+import org.opentripplanner.ext.stopclustering.StopClusterHolder;
+import org.opentripplanner.ext.stopclustering.models.StopClusterMode;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.MultiModalStation;
@@ -54,6 +56,7 @@ public class GraphIndex {
     private final HashGridSpatialIndex<TransitStopVertex> stopSpatialIndex = new HashGridSpatialIndex<>();
     private final Map<ServiceDate, TIntSet> serviceCodesRunningForDate = new HashMap<>();
     private FlexIndex flexIndex = null;
+    private StopClusterHolder stopClusterHolder = null;
 
     public GraphIndex(Graph graph) {
         LOG.info("GraphIndex init...");
@@ -111,6 +114,11 @@ public class GraphIndex {
             for (Trip trip : flexIndex.tripById.values()) {
                 tripForId.put(trip.getId(), trip);
             }
+        }
+
+        if (OTPFeature.StopClustering.isOn()) {
+            stopClusterHolder = new StopClusterHolder(this, StopClusterMode.proximity);
+            stopClusterHolder.clusterStopsAsNeeded();
         }
 
         LOG.info("GraphIndex init complete.");
@@ -257,4 +265,6 @@ public class GraphIndex {
     public FlexIndex getFlexIndex() {
         return flexIndex;
     }
+
+    public StopClusterHolder getStopClusterHolder() { return stopClusterHolder; }
 }

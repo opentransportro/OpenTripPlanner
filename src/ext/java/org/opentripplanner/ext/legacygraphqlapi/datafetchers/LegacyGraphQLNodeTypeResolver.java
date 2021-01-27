@@ -4,6 +4,7 @@ import graphql.TypeResolutionEnvironment;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.TypeResolver;
+import org.opentripplanner.ext.stopclustering.models.StopCluster;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Station;
@@ -31,7 +32,7 @@ public class LegacyGraphQLNodeTypeResolver implements TypeResolver {
     if (o instanceof BikePark) return schema.getObjectType("BikePark");
     if (o instanceof BikeRentalStation) return schema.getObjectType("BikeRentalStation");
     // if (o instanceof CarPark) return schema.getObjectType("CarPark");
-    // if (o instanceof Cluster) return schema.getObjectType("Cluster");
+    if (o instanceof StopCluster) return schema.getObjectType("Cluster");
     if (o instanceof PatternAtStop) return schema.getObjectType("DepartureRow");
     if (o instanceof TripPattern) return schema.getObjectType("Pattern");
     if (o instanceof PlaceAtDistance) return schema.getObjectType("placeAtDistance");

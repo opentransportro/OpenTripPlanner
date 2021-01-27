@@ -1186,6 +1186,12 @@ type QueryType {
 
         """Query stops by this name"""
         name: String
+
+        """List of feed ids from which stops are returned"""
+        feeds: [String!]
+
+        """Maximum number of stops to be included in result"""
+        maxResults: Int
     ): [Stop]
 
     """Get all stops within the specified bounding box"""
@@ -1418,7 +1424,19 @@ type QueryType {
     pattern(id: String!): Pattern
 
     """Get all clusters"""
-    clusters: [Cluster]
+    clusters(
+        """Return clusters with these ids"""
+        ids: [String]
+
+        """Query clusters by this name"""
+        name: String
+
+        """List of feed ids from which clusters are returned"""
+        feeds: [String!]
+
+        """Maximum number of clusters to be included in result"""
+        maxResults: Int
+    ): [Cluster]
 
     """Get a single cluster based on its ID, i.e. value of field `gtfsId`"""
     cluster(id: String!): Cluster
