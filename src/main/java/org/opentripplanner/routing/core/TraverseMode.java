@@ -2,6 +2,8 @@ package org.opentripplanner.routing.core;
 
 import org.opentripplanner.model.TransitMode;
 
+import java.util.EnumSet;
+
 public enum TraverseMode {
     WALK, BICYCLE, CAR,
     TRAM, SUBWAY, RAIL, BUS, FERRY,
@@ -9,14 +11,18 @@ public enum TraverseMode {
     SCHOOL_BUS, TROLLEY,
     TRANSIT, AIRPLANE;
 
+    private static final EnumSet<TraverseMode> TRANSIT_MODES = EnumSet.of(
+        AIRPLANE, BUS, CABLE_CAR, FERRY, FUNICULAR, GONDOLA, RAIL, SUBWAY, TRAM, SCHOOL_BUS, TROLLEY, TRANSIT
+    );
+
+    private static final EnumSet<TraverseMode> STREET_MODES = EnumSet.of(WALK, BICYCLE, CAR);
+
     public boolean isTransit() {
-        return this == TRAM || this == SUBWAY || this == RAIL || this == BUS || this == FERRY
-                || this == CABLE_CAR || this == GONDOLA || this == FUNICULAR || this == TRANSIT
-                || this == AIRPLANE || this == SCHOOL_BUS || this == TROLLEY;
+        return TRANSIT_MODES.contains(this);
     }
 
     public boolean isOnStreetNonTransit() {
-        return this == WALK || this == BICYCLE || this == CAR;
+        return STREET_MODES.contains(this);
     }
     
     public boolean isDriving() {
@@ -46,6 +52,10 @@ public enum TraverseMode {
                 return TraverseMode.CABLE_CAR;
             case GONDOLA:
                 return TraverseMode.GONDOLA;
+            case SCHOOL_BUS:
+                return TraverseMode.SCHOOL_BUS;
+            case TROLLEY:
+                return TraverseMode.TROLLEY;
             case FUNICULAR:
                 return TraverseMode.FUNICULAR;
             default:

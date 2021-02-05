@@ -1,6 +1,7 @@
 package org.opentripplanner.routing.algorithm.filterchain;
 
 import org.opentripplanner.model.plan.Itinerary;
+import org.opentripplanner.routing.algorithm.filterchain.filters.AddMinSafeTransferCostFilter;
 import org.opentripplanner.routing.algorithm.filterchain.filters.DebugFilterWrapper;
 import org.opentripplanner.routing.algorithm.filterchain.filters.FilterChain;
 import org.opentripplanner.routing.algorithm.filterchain.filters.GroupBySimilarLegsFilter;
@@ -8,8 +9,7 @@ import org.opentripplanner.routing.algorithm.filterchain.filters.LatestDeparture
 import org.opentripplanner.routing.algorithm.filterchain.filters.MaxLimitFilter;
 import org.opentripplanner.routing.algorithm.filterchain.filters.OtpDefaultSortOrder;
 import org.opentripplanner.routing.algorithm.filterchain.filters.RemoveTransitIfStreetOnlyIsBetterFilter;
-import org.opentripplanner.routing.algorithm.filterchain.filters.SortFilter;
-import org.opentripplanner.routing.algorithm.filterchain.filters.SortOnAdjustedCost;
+import org.opentripplanner.routing.algorithm.filterchain.filters.RemoveWalkOnlyFilter;
 import org.opentripplanner.routing.algorithm.filterchain.filters.SortOnGeneralizedCost;
 import org.opentripplanner.routing.algorithm.filterchain.filters.TransitGeneralizedCostFilter;
 
@@ -34,9 +34,12 @@ public class ItineraryFilterChainBuilder {
     private boolean debug = false;
     private int maxNumberOfItineraries = NOT_SET;
     private boolean removeTransitWithHigherCostThanBestOnStreetOnly = true;
+    private double minSafeTransferTimeFactor;
+    private boolean removeWalkAllTheWayResults;
     private DoubleFunction<Double> transitGeneralizedCostLimit;
     private Instant latestDepartureTimeLimit = null;
     private Consumer<Itinerary> maxLimitReachedSubscriber;
+
 
     /**
      * @param arriveBy Used to set the correct sort order. This si the same flag as the
@@ -54,6 +57,17 @@ public class ItineraryFilterChainBuilder {
      */
     public ItineraryFilterChainBuilder withMaxNumberOfItineraries(int value) {
         this.maxNumberOfItineraries = value;
+        return this;
+    }
+
+    /**
+     * If the transfer-time for an itinerary is less than the min-safe-transfer-time-limit, then
+     * the difference is multiplied with this factor and added to the itinerary generalized-cost.
+     * <p>
+     * Default is off {@code 0.0}.
+     */
+    public ItineraryFilterChainBuilder withMinSafeTransferTimeFactor(double minSafeTransferTimeFactor) {
+        this.minSafeTransferTimeFactor = minSafeTransferTimeFactor;
         return this;
     }
 
@@ -133,8 +147,22 @@ public class ItineraryFilterChainBuilder {
         return this;
     }
 
+    /**
+     * If set, walk-all-the-way itineraries are removed. This happens AFTER e.g. the group-by
+     * and remove-transit-with-higher-cost-than-best-on-street-only filters. This make sure that
+     * poor transit itineraries are filtered away before the walk-all-the-way itinerary is removed.
+     */
+    public ItineraryFilterChainBuilder withRemoveWalkAllTheWayResults(boolean enable) {
+        this.removeWalkAllTheWayResults = enable;
+        return this;
+    }
+
     public ItineraryFilter build() {
         List<ItineraryFilter> filters = new ArrayList<>();
+
+        if(minSafeTransferTimeFactor > 0.01) {
+            filters.add(new AddMinSafeTransferCostFilter(minSafeTransferTimeFactor));
+        }
 
         // Sort list on {@code groupByP} in ascending order to keep as many of the elements in the
         // groups where the grouping parameter is relaxed as possible.
@@ -149,7 +177,7 @@ public class ItineraryFilterChainBuilder {
                     new GroupBySimilarLegsFilter(
                         it.groupByP,
                         it.approximateMinLimit,
-                        createGroupBySimilaritySortFilter(it.adjustedCost)
+                        new SortOnGeneralizedCost()
                     )
                 );
             }
@@ -172,6 +200,10 @@ public class ItineraryFilterChainBuilder {
         {
             if (removeTransitWithHigherCostThanBestOnStreetOnly) {
                 filters.add(new RemoveTransitIfStreetOnlyIsBetterFilter());
+            }
+
+            if(removeWalkAllTheWayResults) {
+                filters.add(new RemoveWalkOnlyFilter());
             }
 
             if (latestDepartureTimeLimit != null) {
@@ -199,12 +231,6 @@ public class ItineraryFilterChainBuilder {
         }
 
         return new FilterChain(filters);
-    }
-
-    private SortFilter createGroupBySimilaritySortFilter(AdjustedCost adjustedCost) {
-        return adjustedCost == null
-            ? new SortOnGeneralizedCost()
-            : new SortOnAdjustedCost(arriveBy, adjustedCost);
     }
 
 

@@ -22,10 +22,11 @@ import org.opentripplanner.routing.impl.PathComparator;
 import org.opentripplanner.routing.spt.DominanceFunction;
 import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.spt.ShortestPathTree;
-import org.opentripplanner.util.DateUtils;
+import org.opentripplanner.util.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -41,7 +42,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.function.DoubleFunction;
 
 /**
  * A trip planning request. Some parameters may not be honored by the trip planner for some or all
@@ -276,7 +276,7 @@ public class RoutingRequest implements Cloneable, Serializable {
      * An extra penalty added on transfers (i.e. all boardings except the first one).
      * Not to be confused with bikeBoardCost and walkBoardCost, which are the cost of boarding a
      * vehicle with and without a bicycle. The boardCosts are used to model the 'usual' perceived
-     * cost of using a transit vehicle, and the transferPenalty is used when a user requests even
+     * cost of using a transit vehicle, and the transferCost is used when a user requests even
      * less transfers. In the latter case, we don't actually optimize for fewest transfers, as this
      * can lead to absurd results. Consider a trip in New York from Grand Army
      * Plaza (the one in Brooklyn) to Kalustyan's at noon. The true lowest transfers route is to
@@ -285,12 +285,7 @@ public class RoutingRequest implements Cloneable, Serializable {
      * Even someone optimizing for fewest transfers doesn't want to wait until midnight. Maybe they
      * would be willing to walk to 7th Ave and take the Q to Union Square, then transfer to the 6.
      * If this takes less than optimize_transfer_penalty seconds, then that's what we'll return.
-     *
-     * @deprecated TODO OTP2 Regression. Not currently working in OTP2. We might not implement the
-     *                       old functionality the same way, but we will try to map this parameter
-     *                       so it does work similar as before.
      */
-    @Deprecated
     public int transferCost = 0;
 
     /**
@@ -387,20 +382,18 @@ public class RoutingRequest implements Cloneable, Serializable {
     @Deprecated
     public double waitAtBeginningFactor = 0.4;
 
-    /** This prevents unnecessary transfers by adding a cost for boarding a vehicle.
-     *
-     * @Deprecated TODO OTP2 - Regression. Could be implemented as a part of itinerary-filtering
-     *                          after a Raptor search.
-     * */
-    @Deprecated
+    /**
+     * This prevents unnecessary transfers by adding a cost for boarding a vehicle. This is in
+     * addition to the cost of the transfer(walking) and waiting-time. It is also in addition to
+     * the {@link #transferCost}.
+     */
     public int walkBoardCost = 60 * 10;
 
-    /** Separate cost for boarding a vehicle with a bicycle, which is more difficult than on foot.
-     *
-     * @Deprecated TODO OTP2 - Regression. Could be implemented as a part of itinerary-filtering
-     *                          after a Raptor search.
-     * */
-    @Deprecated
+    /**
+     * Separate cost for boarding a vehicle with a bicycle, which is more difficult than on foot.
+     * This is in addition to the cost of the transfer(biking) and waiting-time. It is also in
+     * addition to the {@link #transferCost}.
+     */
     public int bikeBoardCost = 60 * 10;
 
     /**
@@ -531,23 +524,6 @@ public class RoutingRequest implements Cloneable, Serializable {
      * Unit is seconds. Default value is not-set(empty map).
      */
     public Map<TraverseMode, Integer> alightSlackForMode = new HashMap<>();
-
-
-    /**
-     * A relative maximum limit for the generalized cost for transit itineraries. The limit is a
-     * linear function of the minimum generalized-cost. The minimum cost is lowest cost from the
-     * set of all returned transit itineraries. The function is used to calculate a max-limit. The
-     * max-limit is then used to to filter by generalized-cost. Transit itineraries with a cost
-     * higher than the max-limit is dropped from the result set. None transit itineraries is
-     * excluded from the filter.
-     * <ul>
-     * <li>To set a filter to be 1 hours plus 2 times the lowest cost use:
-     * {@code 3600 + 2.0 x}
-     * <li>To set an absolute value(3000) use: {@code 3000 + 0x}
-     * </ul>
-     * The default is {@code null} - no filter is applied.
-     */
-    public DoubleFunction<Double> transitGeneralizedCostLimit = null;
 
     /**
      * Ideally maxTransfers should be set in the router config, not here. Instead the client should
@@ -688,13 +664,8 @@ public class RoutingRequest implements Cloneable, Serializable {
     public String pathComparator = null;
 
 
-    /**
-     * Switch on to return all itineraries and mark filtered itineraries as deleted.
-     */
-    public boolean debugItineraryFilter = false;
-
-
-    public GroupBySimilarityParams groupBySimilarity;
+    @Nonnull
+    public ItineraryFilterParameters itineraryFilters = ItineraryFilterParameters.createDefault();
 
     /**
      * The numbers of days before the search date to consider when filtering trips for this search.
